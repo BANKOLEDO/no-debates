@@ -30,6 +30,7 @@ export function useDecisionMachine({
   const [verdict, setVerdict] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [spinRequest, setSpinRequest] = useState<{ winnerIndex: number; nonce: number } | null>(null);
+  const [clip, setClip] = useState<{ blob: Blob; ext: string } | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
@@ -80,6 +81,7 @@ export function useDecisionMachine({
     setVerdict(null);
     setCopied(false);
     setCopiedLink(false);
+    setClip(null);
 
     const winnerIndex = Math.floor(Math.random() * options.length);
     setSpinRequest({ winnerIndex, nonce: Date.now() });
@@ -133,6 +135,23 @@ export function useDecisionMachine({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [options, isSpinning, question]);
 
+  const handleClipReady = (blob: Blob, ext: string) => {
+    setClip({ blob, ext });
+  };
+
+  const handleClipDownload = () => {
+    if (!clip) return;
+    sound.click();
+    const url = URL.createObjectURL(clip.blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `no-debates-spin.${clip.ext}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  };
+
   const handleCopyChat = () => {
     if (!verdict) return;
     sound.tap();
@@ -184,6 +203,7 @@ export function useDecisionMachine({
     verdict,
     isSpinning,
     spinRequest,
+    clip,
     copied,
     copiedLink,
     presets,
@@ -194,6 +214,8 @@ export function useDecisionMachine({
     spinDecision,
     handleSpinTick,
     handleSpinSettled,
+    handleClipReady,
+    handleClipDownload,
     handleCopyChat,
     handleCopyLink,
   };
