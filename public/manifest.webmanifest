@@ -1,0 +1,18 @@
+{
+  "name": "No Debates — Zero-Argument Decision Maker",
+  "short_name": "No Debates",
+  "description": "End group chat indecision in 3 seconds. Type your options, spin once, and share the locked verdict with zero debate.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF8F5",
+  "theme_color": "#FF4A1C",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
