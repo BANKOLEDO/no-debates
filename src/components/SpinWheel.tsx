@@ -162,15 +162,12 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
     const rec = recorderRef.current;
     recorderRef.current = null;
     if (!rec) return;
-    rec.ondataavailable = (e) => {
-      if (e.data.size > 0) chunksRef.current.push(e.data);
-    };
-    rec.onstop = () => {
-      const ext = rec.mimeType.includes('mp4') ? 'mp4' : 'webm';
-      onClipRef.current?.(new Blob(chunksRef.current, { type: rec.mimeType }), ext);
-      chunksRef.current = [];
-    };
-    if (rec.state !== 'inactive') rec.stop();
+    if (rec.state !== 'inactive') {
+      try {
+        rec.stop();
+      } catch {
+      }
+    }
   };
 
   // Animate to the requested winner
@@ -188,7 +185,7 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
     let lastSeg = -1;
     let lastTick = 0;
 
-    // Start clip capture
+    // Start clip capture, handlers attached before recording
     try {
       const canvas = canvasRef.current;
       if (canvas && typeof canvas.captureStream === 'function' && typeof MediaRecorder !== 'undefined') {
@@ -196,6 +193,16 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
         const stream = canvas.captureStream(30);
         const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2_500_000 });
         chunksRef.current = [];
+        rec.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
+        };
+        rec.onstop = () => {
+          const ext = rec.mimeType.includes('mp4') ? 'mp4' : 'webm';
+          if (chunksRef.current.length > 0) {
+            onClipRef.current?.(new Blob(chunksRef.current, { type: rec.mimeType }), ext);
+          }
+          chunksRef.current = [];
+        };
         rec.start(250);
         recorderRef.current = rec;
       }
