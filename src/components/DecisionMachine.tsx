@@ -2,6 +2,7 @@ import React from 'react';
 import {
   ArrowPathIcon,
   ArrowDownTrayIcon,
+  FilmIcon,
   ShareIcon,
   PlusIcon,
   XMarkIcon,
@@ -37,6 +38,9 @@ export const DecisionMachine: React.FC<{ api: DecisionMachineApi }> = ({ api }) 
     spinDecision,
     handleSpinTick,
     handleSpinSettled,
+    handleClipReady,
+    handleClipDownload,
+    clip,
     handleCopyLink,
   } = api;
 
@@ -193,6 +197,7 @@ export const DecisionMachine: React.FC<{ api: DecisionMachineApi }> = ({ api }) 
               request={spinRequest}
               onTick={handleSpinTick}
               onSettled={handleSpinSettled}
+              onClip={handleClipReady}
             />
             <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-ink-400">
               {isSpinning ? 'Spinning…' : verdict ? 'Official verdict locked' : 'Ready to spin'}
@@ -241,6 +246,15 @@ export const DecisionMachine: React.FC<{ api: DecisionMachineApi }> = ({ api }) 
                   <span>{copiedLink ? 'Link Copied!' : 'Share Proof Link'}</span>
                 </button>
               </div>
+            )}
+            {clip && verdict && !isSpinning && (
+              <button
+                onClick={handleClipDownload}
+                className="w-full bg-white hover:bg-ink-50 border border-ink-200 text-ink-800 py-3 px-4 rounded-xl text-xs font-extrabold flex items-center justify-center space-x-2 transition-colors"
+              >
+                <FilmIcon className="w-4 h-4 text-accent" />
+                <span>Save spin video</span>
+              </button>
             )}
           </div>
 
