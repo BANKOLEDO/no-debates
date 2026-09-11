@@ -37,8 +37,8 @@ function parseRoute(): Route {
 }
 
 function parseSquadId(): string | null {
-  const m = window.location.hash.match(/^#\/squad\/([A-Za-z0-9]+)\/?$/);
-  return m ? m[1] : null;
+  const m = window.location.hash.match(/^#\/squad\/([^/\s]+)\/?$/);
+  return m ? decodeURIComponent(m[1]) : null;
 }
 
 // User-edited templates persist here, built-ins stay untouched
