@@ -9,6 +9,7 @@ import { FaqSection } from './components/FaqSection';
 import { CtaSection } from './components/CtaSection';
 import { ProductBottomNav, type BottomTab } from './components/ProductBottomNav';
 import { MachinePage } from './pages/MachinePage';
+import { AdminPage } from './pages/AdminPage';
 import { SquadScreen } from './pages/SquadPage';
 import { ReceiptPage, type SharedVerdict } from './pages/ReceiptPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -24,7 +25,7 @@ import { DecisionRecord, DecisionPreset } from './types';
 const STORAGE_KEY = 'nodebates_history_v5';
 const PRESETS_KEY = 'nodebates_presets_v1';
 
-type Route = 'home' | 'machine' | 'receipt' | 'history' | 'terms' | 'privacy' | 'squad';
+type Route = 'home' | 'machine' | 'receipt' | 'history' | 'terms' | 'privacy' | 'squad' | 'nodb-admin';
 
 function parseRoute(): Route {
   const h = window.location.hash;
@@ -33,6 +34,7 @@ function parseRoute(): Route {
   if (h === '#/terms') return 'terms';
   if (h === '#/privacy') return 'privacy';
   if (h === '#/squad' || h.startsWith('#/squad/')) return 'squad';
+  if (h === '#/nodb-admin') return 'nodb-admin';
   return 'home';
 }
 
@@ -357,6 +359,16 @@ export function App() {
             onViewReceipt={(question, options, verdict) => {
               openReceiptData(question, options, verdict, Date.now());
             }}
+            onBack={() => go('home')}
+          />
+        </main>
+      )}
+
+      {route === 'nodb-admin' && (
+        <main className="flex-1 w-full">
+          <AdminPage
+            history={history}
+            templatesEdited={editedIds.size}
             onBack={() => go('home')}
           />
         </main>
