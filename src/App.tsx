@@ -9,6 +9,7 @@ import { FaqSection } from './components/FaqSection';
 import { CtaSection } from './components/CtaSection';
 import { ProductBottomNav, type BottomTab } from './components/ProductBottomNav';
 import { MachinePage } from './pages/MachinePage';
+import { SquadScreen } from './pages/SquadPage';
 import { ReceiptPage, type SharedVerdict } from './pages/ReceiptPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { TermsPage } from './pages/TermsPage';
@@ -23,7 +24,7 @@ import { DecisionRecord, DecisionPreset } from './types';
 const STORAGE_KEY = 'nodebates_history_v5';
 const PRESETS_KEY = 'nodebates_presets_v1';
 
-type Route = 'home' | 'machine' | 'receipt' | 'history' | 'terms' | 'privacy';
+type Route = 'home' | 'machine' | 'receipt' | 'history' | 'terms' | 'privacy' | 'squad';
 
 function parseRoute(): Route {
   const h = window.location.hash;
@@ -31,7 +32,13 @@ function parseRoute(): Route {
   if (h === '#/history') return 'history';
   if (h === '#/terms') return 'terms';
   if (h === '#/privacy') return 'privacy';
+  if (h === '#/squad' || h.startsWith('#/squad/')) return 'squad';
   return 'home';
+}
+
+function parseSquadId(): string | null {
+  const m = window.location.hash.match(/^#\/squad\/([A-Za-z0-9]+)\/?$/);
+  return m ? m[1] : null;
 }
 
 // User-edited templates persist here, built-ins stay untouched
@@ -77,21 +84,29 @@ export function App() {
 
   // Reads the URL before first paint so refresh + shared links land correctly
   function initialLocation(): { route: Route; shared: SharedVerdict | null } {
+    const toShared = (decoded: Partial<DecisionRecord>): { route: Route; shared: SharedVerdict } => ({
+      route: 'receipt',
+      shared: {
+        question: decoded.question || 'Decision',
+        options: decoded.options || [],
+        verdict: decoded.verdict || '',
+        timestamp: decoded.timestamp || Date.now(),
+        hash: decoded.shareCode || '',
+      },
+    });
+
+    // Preview links: /v/<payload> (edge serves bots, app handles humans)
+    const pathMatch = window.location.pathname.match(/^\/v\/([A-Za-z0-9\-_]+)\/?$/);
+    if (pathMatch) {
+      const decoded = decodeDecisionFromHash(`#${pathMatch[1]}`);
+      if (decoded) return toShared(decoded);
+    }
+
+    // Legacy hash links: #<payload>
     const hash = window.location.hash;
     if (hash && hash.length > 2 && !hash.startsWith('#/')) {
       const decoded = decodeDecisionFromHash(hash);
-      if (decoded) {
-        return {
-          route: 'receipt',
-          shared: {
-            question: decoded.question || 'Decision',
-            options: decoded.options || [],
-            verdict: decoded.verdict || '',
-            timestamp: decoded.timestamp || Date.now(),
-            hash: decoded.shareCode || '',
-          },
-        };
-      }
+      if (decoded) return toShared(decoded);
     }
     return { route: parseRoute(), shared: null };
   }
@@ -278,6 +293,7 @@ export function App() {
               presets={presets}
               onLaunchMachine={() => go('machine')}
               onSelectPreset={handleSelectPreset}
+              onSquad={() => go('squad')}
             />
           </div>
 
@@ -311,6 +327,23 @@ export function App() {
             historyCount={history.length}
             onBack={() => go('home')}
             onOpenHistory={() => go('history')}
+          />
+        </main>
+      )}
+
+      {route === 'squad' && (
+        <main className="flex-1 w-full">
+          <SquadScreen
+            key={parseSquadId() || 'lobby'}
+            roomId={route === 'squad' ? parseSquadId() : null}
+            onOpenRoom={(id) => {
+              window.location.hash = `#/squad/${id}`;
+            }}
+            onOpenInMachine={(question, options, verdict) => {
+              setInitialData({ question, options, verdict });
+              go('machine');
+            }}
+            onBack={() => go('home')}
           />
         </main>
       )}
