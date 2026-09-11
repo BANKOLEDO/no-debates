@@ -51,10 +51,10 @@ export const MachinePage: React.FC<MachinePageProps> = ({
                 sound.tap();
                 onOpenSpeed();
               }}
-              className="hidden sm:flex items-center gap-1.5 text-[13px] font-bold text-white/60 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-[13px] font-bold text-white/60 hover:text-white transition-colors"
             >
               <BoltIcon className="w-4 h-4" />
-              <span>Speed</span>
+              <span className="hidden md:inline">Speed</span>
             </button>
             <button
               onClick={() => {
