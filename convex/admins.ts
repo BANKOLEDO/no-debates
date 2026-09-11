@@ -18,7 +18,7 @@ export async function validToken(ctx: any, token: string): Promise<boolean> {
 }
 
 // One-time bootstrap from your terminal:
-//   npx convex run admins:seed --prod --email you@mail.com --pass "long-secret-code"
+//   npx convex run admins:seed '{"email":"you@mail.com","passcode":"long-secret-code"}' --prod
 // Refuses once an admin exists.
 export const seed = mutation({
   args: { email: v.string(), passcode: v.string() },
