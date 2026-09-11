@@ -11,6 +11,7 @@ import { ProductBottomNav, type BottomTab } from './components/ProductBottomNav'
 import { MachinePage } from './pages/MachinePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AdminPage } from './admin/AdminPage';
+import { EmbedPage } from './pages/EmbedPage';
 import { convexClient } from './lib/convexClient';
 import { SquadScreen } from './pages/SquadPage';
 import { ReceiptPage, type SharedVerdict } from './pages/ReceiptPage';
@@ -27,7 +28,7 @@ import { DecisionRecord, DecisionPreset } from './types';
 const STORAGE_KEY = 'nodebates_history_v5';
 const PRESETS_KEY = 'nodebates_presets_v1';
 
-type Route = 'home' | 'machine' | 'receipt' | 'history' | 'terms' | 'privacy' | 'squad' | 'nodb-admin' | 'notfound';
+type Route = 'home' | 'machine' | 'receipt' | 'history' | 'terms' | 'privacy' | 'squad' | 'nodb-admin' | 'embed' | 'notfound';
 
 function parseRoute(): Route {
   const h = window.location.hash;
@@ -40,6 +41,11 @@ function parseRoute(): Route {
   if (h === '#/nodb-admin') return 'nodb-admin';
   if (h.startsWith('#/')) return 'notfound';
   return 'home';
+}
+
+function parseEmbedRoomId(): string | null {
+  const m = window.location.pathname.match(/^\/e\/([A-Za-z0-9_]+)\/?$/);
+  return m ? m[1] : null;
 }
 
 function parseSquadId(): string | null {
@@ -77,8 +83,10 @@ export function App() {
   const [activeTab, setActiveTab] = useState<BottomTab>('machine');
   const [activeSection, setActiveSection] = useState('');
   const [squadId, setSquadId] = useState<string | null>(() => parseSquadId());
+  const [embedRoomId] = useState<string | null>(() => parseEmbedRoomId());
 
   useEffect(() => {
+    if (route === 'embed') return;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -87,10 +95,14 @@ export function App() {
     } catch {
       // Ignore
     }
-  }, []);
+  }, [route]);
 
   // Reads the URL before first paint so refresh + shared links land correctly
   function initialLocation(): { route: Route; shared: SharedVerdict | null } {
+    if (parseEmbedRoomId()) {
+      return { route: 'embed', shared: null };
+    }
+
     const toShared = (decoded: Partial<DecisionRecord>): { route: Route; shared: SharedVerdict } => ({
       route: 'receipt',
       shared: {
@@ -297,7 +309,7 @@ export function App() {
   return (
     <MotionConfig reducedMotion="user">
     <div className="min-h-screen bg-canvas text-ink-900 flex flex-col font-sans selection:bg-accent selection:text-white">
-      {route !== 'nodb-admin' && (
+      {route !== 'nodb-admin' && route !== 'embed' && (
         <Navbar
           isMuted={isMuted}
           onToggleMute={() => {
@@ -390,6 +402,12 @@ export function App() {
         </main>
       )}
 
+      {route === 'embed' && embedRoomId && (
+        <main className="flex-1 w-full">
+          <EmbedPage roomId={embedRoomId} />
+        </main>
+      )}
+
       {route === 'notfound' && (
         <main className="flex-1 w-full">
           <NotFoundPage onBack={() => go('home')} />
@@ -456,7 +474,7 @@ export function App() {
         </footer>
       )}
 
-      {route !== 'nodb-admin' && (
+      {route !== 'nodb-admin' && route !== 'embed' && (
         <>
           {/* Spacer so the bottom nav never covers content */}
           <div className="lg:hidden" style={{ height: 66, paddingBottom: 'env(safe-area-inset-bottom)' }} />
