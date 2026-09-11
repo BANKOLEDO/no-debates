@@ -28,8 +28,12 @@ export const PrivacyPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       <div className="max-w-2xl mx-auto px-4 pt-6 pb-4">
         <div className="bg-white rounded-2xl p-6 sm:p-8 space-y-5 text-sm text-ink-600 leading-relaxed">
           <section>
-            <h2 className="font-bold text-ink-900 mb-1">Nothing leaves your device</h2>
-            <p>No accounts, no cookies, no analytics, no tracking pixels. There is no server collecting your decisions.</p>
+            <h2 className="font-bold text-ink-900 mb-1">Solo play stays on your device</h2>
+            <p>No accounts, no cookies, no analytics, no tracking pixels. Solo decisions never touch a server.</p>
+          </section>
+          <section>
+            <h2 className="font-bold text-ink-900 mb-1">Squad rooms sync online</h2>
+            <p>Squad rooms have to live somewhere every player can reach, so the question, options, names, and verdict are stored on our hosted database. Anyone with the room link can read them. Only share room links with people you trust.</p>
           </section>
           <section>
             <h2 className="font-bold text-ink-900 mb-1">What is stored</h2>
