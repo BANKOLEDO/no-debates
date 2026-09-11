@@ -9,7 +9,8 @@ import { FaqSection } from './components/FaqSection';
 import { CtaSection } from './components/CtaSection';
 import { ProductBottomNav, type BottomTab } from './components/ProductBottomNav';
 import { MachinePage } from './pages/MachinePage';
-import { AdminPage } from './pages/AdminPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { AdminPage } from './admin/AdminPage';
 import { SquadScreen } from './pages/SquadPage';
 import { ReceiptPage, type SharedVerdict } from './pages/ReceiptPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -25,16 +26,18 @@ import { DecisionRecord, DecisionPreset } from './types';
 const STORAGE_KEY = 'nodebates_history_v5';
 const PRESETS_KEY = 'nodebates_presets_v1';
 
-type Route = 'home' | 'machine' | 'receipt' | 'history' | 'terms' | 'privacy' | 'squad' | 'nodb-admin';
+type Route = 'home' | 'machine' | 'receipt' | 'history' | 'terms' | 'privacy' | 'squad' | 'nodb-admin' | 'notfound';
 
 function parseRoute(): Route {
   const h = window.location.hash;
+  if (h === '' || h === '#/') return 'home';
   if (h === '#/machine') return 'machine';
   if (h === '#/history') return 'history';
   if (h === '#/terms') return 'terms';
   if (h === '#/privacy') return 'privacy';
   if (h === '#/squad' || h.startsWith('#/squad/')) return 'squad';
   if (h === '#/nodb-admin') return 'nodb-admin';
+  if (h.startsWith('#/')) return 'notfound';
   return 'home';
 }
 
@@ -130,6 +133,7 @@ export function App() {
     if (route === 'history') setActiveTab('history');
     if (route === 'home') setActiveTab('home');
     if (route === 'machine') setActiveTab('machine');
+    if (route === 'squad') setActiveTab('squad');
   }, [route]);
 
   // Highlights the nav link for the section in view
@@ -287,25 +291,27 @@ export function App() {
   return (
     <MotionConfig reducedMotion="user">
     <div className="min-h-screen bg-canvas text-ink-900 flex flex-col font-sans selection:bg-accent selection:text-white">
-      <Navbar
-        isMuted={isMuted}
-        onToggleMute={() => {
-          sound.enabled = isMuted;
-          setIsMuted(!isMuted);
-        }}
-        onOpenHistory={() => {
-          setActiveTab('history');
-          go('history');
-        }}
-        historyCount={history.length}
-        onGoHome={() => go('home')}
-        onGoSection={goSection}
-        onGoMachine={() => {
-          setActiveTab('machine');
-          go('machine');
-        }}
-        activeSection={activeSection}
-      />
+      {route !== 'nodb-admin' && (
+        <Navbar
+          isMuted={isMuted}
+          onToggleMute={() => {
+            sound.enabled = isMuted;
+            setIsMuted(!isMuted);
+          }}
+          onOpenHistory={() => {
+            setActiveTab('history');
+            go('history');
+          }}
+          historyCount={history.length}
+          onGoHome={() => go('home')}
+          onGoSection={goSection}
+          onGoMachine={() => {
+            setActiveTab('machine');
+            go('machine');
+          }}
+          activeSection={activeSection}
+        />
+      )}
 
       {route === 'home' && (
         <main className="flex-1 w-full overflow-x-hidden">
@@ -374,8 +380,13 @@ export function App() {
           <AdminPage
             history={history}
             templatesEdited={editedIds.size}
-            onBack={() => go('home')}
           />
+        </main>
+      )}
+
+      {route === 'notfound' && (
+        <main className="flex-1 w-full">
+          <NotFoundPage onBack={() => go('home')} />
         </main>
       )}
 
@@ -439,34 +450,38 @@ export function App() {
         </footer>
       )}
 
-      {/* Spacer so the bottom nav never covers content */}
-      <div className="lg:hidden" style={{ height: 66, paddingBottom: 'env(safe-area-inset-bottom)' }} />
+      {route !== 'nodb-admin' && (
+        <>
+          {/* Spacer so the bottom nav never covers content */}
+          <div className="lg:hidden" style={{ height: 66, paddingBottom: 'env(safe-area-inset-bottom)' }} />
 
-      {/* Bottom product nav (mobile) */}
-      <ProductBottomNav
-        active={activeTab}
-        onGoHome={() => {
-          setActiveTab('home');
-          if (route === 'home') {
-            scrollToTop();
-          } else {
-            go('home');
-          }
-        }}
-        onOpenMachine={() => {
-          setActiveTab('machine');
-          scrollToMachine();
-        }}
-        onOpenHistory={() => {
-          setActiveTab('history');
-          go('history');
-        }}
-        onScrollTop={() => {
-          setActiveTab('top');
-          scrollToTop();
-        }}
-        historyCount={history.length}
-      />
+          {/* Bottom product nav (mobile) */}
+          <ProductBottomNav
+            active={activeTab}
+            onGoHome={() => {
+              setActiveTab('home');
+              if (route === 'home') {
+                scrollToTop();
+              } else {
+                go('home');
+              }
+            }}
+            onOpenMachine={() => {
+              setActiveTab('machine');
+              scrollToMachine();
+            }}
+            onOpenHistory={() => {
+              setActiveTab('history');
+              go('history');
+            }}
+            onGoSquad={() => {
+              setActiveTab('squad');
+              go('squad');
+            }}
+            historyCount={history.length}
+          />
+        </>
+      )}
 
     </div>
     </MotionConfig>
