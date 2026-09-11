@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import { useQuery } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { convexClient } from '../lib/convexClient';
 import { sound } from '../audio/sound';
 import { DecisionRecord } from '../types';
@@ -20,22 +20,57 @@ interface Overview {
   byDay: Record<string, number>;
 }
 
-// Private dashboard at #/nodb-admin. Aggregates only, no room content.
+const TOKEN_KEY = 'nd_admin_token';
+
+const readToken = () => {
+  try {
+    return localStorage.getItem(TOKEN_KEY) || '';
+  } catch {
+    return '';
+  }
+};
+
+// Private dashboard at #/nodb-admin. Login first, aggregates only.
 export const AdminPage: React.FC<AdminPageProps> = ({ history, templatesEdited, onBack }) => {
+  const [token, setToken] = useState(readToken);
+
+  const saveToken = (t: string) => {
+    setToken(t);
+    try {
+      if (t) localStorage.setItem(TOKEN_KEY, t);
+      else localStorage.removeItem(TOKEN_KEY);
+    } catch {
+      // noop
+    }
+  };
+
   return (
     <div className="min-h-screen bg-canvas">
       <div className="bg-ink-900 text-white">
         <div className="max-w-2xl mx-auto px-4 pt-5 pb-10">
-          <button
-            onClick={() => {
-              sound.tap();
-              onBack();
-            }}
-            className="flex items-center gap-1.5 text-[13px] font-bold text-white/60 hover:text-white transition-colors mb-7"
-          >
-            <ArrowLeftIcon className="w-4 h-4" />
-            <span>Home</span>
-          </button>
+          <div className="flex items-center justify-between mb-7">
+            <button
+              onClick={() => {
+                sound.tap();
+                onBack();
+              }}
+              className="flex items-center gap-1.5 text-[13px] font-bold text-white/60 hover:text-white transition-colors"
+            >
+              <ArrowLeftIcon className="w-4 h-4" />
+              <span>Home</span>
+            </button>
+            {token && (
+              <button
+                onClick={() => {
+                  sound.tap();
+                  saveToken('');
+                }}
+                className="text-[12px] font-bold text-white/50 hover:text-white"
+              >
+                Log out
+              </button>
+            )}
+          </div>
           <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-accent mb-3">
             Private · Aggregates only
           </p>
@@ -49,7 +84,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({ history, templatesEdited, 
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pt-6 pb-4 space-y-3">
-        <BackendPanels />
+        {!convexClient ? (
+          <div className="bg-white rounded-2xl p-5">
+            <p className="text-[10px] font-black uppercase tracking-wider text-ink-400 mb-1.5">
+              Squad backend
+            </p>
+            <p className="text-[13px] text-ink-600 leading-relaxed">
+              Offline. Set <span className="font-mono">VITE_CONVEX_URL</span> to light up live room stats.
+            </p>
+          </div>
+        ) : !token ? (
+          <LoginForm onToken={saveToken} />
+        ) : (
+          <LiveBackendPanels token={token} onInvalid={() => saveToken('')} />
+        )}
+
         <div className="bg-white rounded-2xl p-5">
           <p className="text-[10px] font-black uppercase tracking-wider text-ink-400 mb-3">
             This device
@@ -72,29 +121,93 @@ export const AdminPage: React.FC<AdminPageProps> = ({ history, templatesEdited, 
   );
 };
 
-function BackendPanels() {
-  if (!convexClient) {
-    return (
-      <div className="bg-white rounded-2xl p-5">
-        <p className="text-[10px] font-black uppercase tracking-wider text-ink-400 mb-1.5">
-          Squad backend
-        </p>
-        <p className="text-[13px] text-ink-600 leading-relaxed">
-          Offline. Set <span className="font-mono">VITE_CONVEX_URL</span> to light up live room stats.
-        </p>
-      </div>
-    );
-  }
-  return <LiveBackendPanels />;
+function LoginForm({ onToken }: { onToken: (t: string) => void }) {
+  const login = useMutation('admins:login' as any);
+  const [email, setEmail] = useState('');
+  const [passcode, setPasscode] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    if (!email.trim() || !passcode || busy) return;
+    sound.click();
+    setBusy(true);
+    setError('');
+    try {
+      const res = (await login({ email: email.trim(), passcode })) as { token: string } | null;
+      if (!res) {
+        setError('Wrong email or passcode.');
+      } else {
+        onToken(res.token);
+      }
+    } catch {
+      setError('Could not reach the backend. Try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl p-5 space-y-3">
+      <p className="text-[10px] font-black uppercase tracking-wider text-ink-400">
+        Admin login
+      </p>
+      <input
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Admin email"
+        autoComplete="email"
+        className="w-full bg-canvas text-sm font-bold rounded-xl px-4 py-3 border border-ink-200 focus:border-ink-900 focus:outline-none"
+      />
+      <input
+        value={passcode}
+        onChange={(e) => setPasscode(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') submit();
+        }}
+        placeholder="Passcode"
+        type="password"
+        autoComplete="current-password"
+        className="w-full bg-canvas text-sm font-bold rounded-xl px-4 py-3 border border-ink-200 focus:border-ink-900 focus:outline-none"
+      />
+      {error && <p className="text-[12px] font-bold text-red-600">{error}</p>}
+      <button
+        onClick={submit}
+        disabled={!email.trim() || !passcode || busy}
+        className="btn-primary w-full h-11 text-sm disabled:opacity-40"
+      >
+        {busy ? 'Checking…' : 'Unlock dashboard'}
+      </button>
+    </div>
+  );
 }
 
-function LiveBackendPanels() {
-  const data = useQuery('analytics:overview' as any, {}) as Overview | undefined;
+function LiveBackendPanels({ token, onInvalid }: { token: string; onInvalid: () => void }) {
+  const data = useQuery('analytics:overview' as any, { token }) as Overview | null | undefined;
 
   if (data === undefined) {
     return (
       <div className="bg-white rounded-2xl p-5">
         <p className="text-sm font-bold text-ink-400">Loading backend stats…</p>
+      </div>
+    );
+  }
+
+  if (data === null) {
+    return (
+      <div className="bg-white rounded-2xl p-5">
+        <p className="text-[13px] font-bold text-ink-600 mb-3">
+          Session expired. Log in again.
+        </p>
+        <button
+          onClick={() => {
+            sound.tap();
+            onInvalid();
+          }}
+          className="btn-primary h-10 px-5 text-[13px]"
+        >
+          Back to login
+        </button>
       </div>
     );
   }
