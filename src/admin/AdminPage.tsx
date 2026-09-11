@@ -3,6 +3,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { convexClient } from '../lib/convexClient';
 import { LogoMark } from '../components/Logo';
+import { useToast } from '../components/Toaster';
 import { sound } from '../audio/sound';
 import { DecisionRecord } from '../types';
 
@@ -18,6 +19,10 @@ interface Overview {
   options: number;
   members: number;
   byDay: Record<string, number>;
+  totalViews: number;
+  visitsByDay: Record<string, number>;
+  topRoutes: Record<string, number>;
+  trend: { day: string; rooms: number; views: number }[];
 }
 
 const TOKEN_KEY = 'nd_admin_token';
@@ -33,6 +38,7 @@ const readToken = () => {
 // Isolated dashboard at #/nodb-admin. Login first, stats after.
 export const AdminPage: React.FC<AdminPageProps> = ({ history, templatesEdited }) => {
   const [token, setToken] = useState(readToken);
+  const data = useQuery('analytics:overview' as any, { token }) as Overview | null | undefined;
 
   const saveToken = (t: string) => {
     setToken(t);
@@ -104,7 +110,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({ history, templatesEdited }
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pt-6 pb-4 space-y-3">
-        <LiveBackendPanels token={token} onInvalid={() => saveToken('')} />
+        <LiveBackendPanels data={data} onInvalid={() => saveToken('')} />
+
+        {data && <TrafficPanel data={data} />}
 
         <div className="bg-white rounded-2xl p-5">
           <p className="text-[10px] font-black uppercase tracking-wider text-ink-400 mb-3">
@@ -115,14 +123,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({ history, templatesEdited }
             <Stat label="Templates customized" value={String(templatesEdited)} />
           </div>
         </div>
-        <div className="bg-white rounded-2xl p-5">
-          <p className="text-[10px] font-black uppercase tracking-wider text-ink-400 mb-1.5">
-            Traffic
-          </p>
-          <p className="text-[13px] text-ink-600 leading-relaxed">
-            Page views and visitors live in the Vercel Analytics dashboard for this project, not here.
-          </p>
-        </div>
       </div>
     </div>
   );
@@ -130,26 +130,29 @@ export const AdminPage: React.FC<AdminPageProps> = ({ history, templatesEdited }
 
 function LoginForm({ onToken }: { onToken: (t: string) => void }) {
   const login = useMutation('admins:login' as any);
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [passcode, setPasscode] = useState('');
   const [showPass, setShowPass] = useState(false);
-  const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
     if (!email.trim() || !passcode || busy) return;
     sound.click();
     setBusy(true);
-    setError('');
     try {
       const res = (await login({ email: email.trim(), passcode })) as { token: string } | null;
       if (!res) {
-        setError('Wrong email or passcode.');
+        toast.error({ title: 'Wrong email or passcode', message: 'Check both fields and try again.' });
       } else {
+        toast.success({ title: 'Dashboard unlocked' });
         onToken(res.token);
       }
     } catch {
-      setError('Could not reach the backend. Try again.');
+      toast.error({
+        title: 'Could not reach the backend',
+        message: 'Check your connection and try again.',
+      });
     } finally {
       setBusy(false);
     }
@@ -192,7 +195,6 @@ function LoginForm({ onToken }: { onToken: (t: string) => void }) {
           )}
         </button>
       </div>
-      {error && <p className="text-[12px] font-bold text-red-600">{error}</p>}
       <button
         onClick={submit}
         disabled={!email.trim() || !passcode || busy}
@@ -204,8 +206,13 @@ function LoginForm({ onToken }: { onToken: (t: string) => void }) {
   );
 }
 
-function LiveBackendPanels({ token, onInvalid }: { token: string; onInvalid: () => void }) {
-  const data = useQuery('analytics:overview' as any, { token }) as Overview | null | undefined;
+function LiveBackendPanels({
+  data,
+  onInvalid,
+}: {
+  data: Overview | null | undefined;
+  onInvalid: () => void;
+}) {
 
   if (data === undefined) {
     return (
@@ -234,10 +241,8 @@ function LiveBackendPanels({ token, onInvalid }: { token: string; onInvalid: () 
     );
   }
 
-  const days = Object.keys(data.byDay)
-    .sort()
-    .slice(-14);
-  const peak = Math.max(1, ...days.map((d) => data.byDay[d]));
+  const peakViews = Math.max(1, ...data.trend.map((d) => d.views));
+  const peakRooms = Math.max(1, ...data.trend.map((d) => d.rooms));
 
   return (
     <>
@@ -263,7 +268,7 @@ function LiveBackendPanels({ token, onInvalid }: { token: string; onInvalid: () 
       </div>
 
       <div className="bg-white rounded-2xl p-5">
-        <p className="text-[10px] font-black uppercase tracking-wider text-ink-400 mb-3">
+        <p className="text-[10px] font-black uppercase tracking-wider text-ink-400 mb-5">
           Participation
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -273,31 +278,47 @@ function LiveBackendPanels({ token, onInvalid }: { token: string; onInvalid: () 
       </div>
 
       <div className="bg-white rounded-2xl p-5">
-        <p className="text-[10px] font-black uppercase tracking-wider text-ink-400 mb-3">
-          Rooms per day · last 14
+        <p className="text-[10px] font-black uppercase tracking-wider text-ink-400 mb-5">
+          Growth · rooms vs views · last 14
         </p>
-        {days.length === 0 ? (
+        {data.trend.length === 0 ? (
           <p className="text-[13px] text-ink-400">No rooms yet.</p>
         ) : (
-          <div className="flex items-end gap-1.5 h-24">
-            {days.map((day) => (
-              <div key={day} className="flex-1 flex flex-col items-center gap-1 min-w-0">
-                <span className="text-[10px] font-bold text-ink-500 tabular-nums">
-                  {data.byDay[day]}
-                </span>
-                <div
-                  className="w-full rounded-md bg-accent"
-                  style={{ height: `${Math.max(6, (data.byDay[day] / peak) * 64)}px` }}
-                />
-                <span className="text-[9px] text-ink-400 tabular-nums">
-                  {day.slice(5)}
-                </span>
-              </div>
-            ))}
+          <div>
+            <div className="flex items-end gap-1 h-28">
+              {data.trend.map(({ day, rooms, views }) => (
+                <div key={day} className="flex-1 flex flex-col items-center justify-end gap-1 min-w-0">
+                  <div className="flex items-end gap-[3px] w-full justify-center">
+                    <div
+                      className="w-[8px] rounded-t-sm bg-ink-900"
+                      style={{ height: `${Math.max(2, (views / peakViews) * 84)}px` }}
+                    />
+                    <div
+                      className="w-[8px] rounded-t-sm bg-accent"
+                      style={{ height: `${Math.max(2, (rooms / peakRooms) * 70)}px` }}
+                    />
+                  </div>
+                  <span className="text-[9px] text-ink-400 tabular-nums">{day.slice(5)}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-5 mt-3">
+              <LegendDot color="bg-ink-900" label="Views" />
+              <LegendDot color="bg-accent" label="Rooms" />
+            </div>
           </div>
         )}
       </div>
     </>
+  );
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="flex items-center gap-1.5 text-[11px] font-bold text-ink-500">
+      <span className={`w-2.5 h-2.5 rounded-sm ${color}`} />
+      {label}
+    </span>
   );
 }
 
@@ -308,6 +329,104 @@ function Stat({ label, value }: { label: string; value: string }) {
         {value}
       </div>
       <div className="text-[11px] font-bold text-ink-500 mt-1.5">{label}</div>
+    </div>
+  );
+}
+
+// Brand-only palette: ink, accent, and warm derived tones.
+const CHART_COLORS = ['#141312', '#FF4A1C', '#8C8A86', '#C93A15', '#FF7A52', '#5C5853'];
+
+// CSS conic-gradient built from cumulative share.
+function donutGradient(routes: [string, number][], total: number): string {
+  let acc = 0;
+  const stops = routes.map(([, count], i) => {
+    const from = (acc / total) * 360;
+    acc += count;
+    const to = (acc / total) * 360;
+    return `${CHART_COLORS[i % CHART_COLORS.length]} ${from}deg ${to}deg`;
+  });
+  return `conic-gradient(${stops.join(', ')})`;
+}
+
+function TrafficPanel({ data }: { data: Overview }) {
+  const days = Object.keys(data.visitsByDay)
+    .sort()
+    .slice(-14);
+  const peak = Math.max(1, ...days.map((d) => data.visitsByDay[d]));
+  const today = days[days.length - 1] ?? new Date().toISOString().slice(0, 10);
+  const todayViews = data.visitsByDay[today] ?? 0;
+  const routes = Object.entries(data.topRoutes)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+  const routeTotal = routes.reduce((sum, [, c]) => sum + c, 0);
+
+  return (
+    <div className="bg-white rounded-2xl p-5 space-y-5">
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-wider text-ink-400 mb-3">
+          Traffic · this week
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <Stat label="Page views" value={String(data.totalViews)} />
+          <Stat label="Today" value={String(todayViews)} />
+        </div>
+      </div>
+
+      {days.length === 0 ? (
+        <p className="text-[13px] text-ink-400">No views yet.</p>
+      ) : (
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-wider text-ink-400 mb-3">
+            Views per day · last 14
+          </p>
+          <div className="flex items-end gap-1.5 h-24">
+            {days.map((day) => (
+              <div key={day} className="flex-1 flex flex-col items-center gap-1 min-w-0">
+                <span className="text-[10px] font-bold text-ink-500 tabular-nums">
+                  {data.visitsByDay[day]}
+                </span>
+                <div
+                  className="w-full rounded-md bg-ink-900"
+                  style={{ height: `${Math.max(6, (data.visitsByDay[day] / peak) * 64)}px` }}
+                />
+                <span className="text-[9px] text-ink-400 tabular-nums">{day.slice(5)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {routes.length > 0 && (
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-wider text-ink-400 mb-4">
+            Top routes
+          </p>
+          <div className="flex items-center gap-5">
+            <div
+              className="w-24 h-24 rounded-full flex-none"
+              style={{
+                background: donutGradient(routes, routeTotal),
+              }}
+            />
+            <div className="flex-1 min-w-0 space-y-2">
+              {routes.map(([route, count], i) => (
+                <div key={route} className="flex items-center gap-2.5">
+                  <span
+                    className="w-2.5 h-2.5 rounded-sm flex-none"
+                    style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }}
+                  />
+                  <span className="text-[13px] font-bold text-ink-900 flex-1 truncate">
+                    {route === '' ? 'home' : route}
+                  </span>
+                  <span className="text-[12px] font-bold text-ink-500 tabular-nums">
+                    {Math.round((count / routeTotal) * 100)}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
