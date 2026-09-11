@@ -1,11 +1,52 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeftIcon, ArrowPathIcon, PlusIcon, ShareIcon, TicketIcon } from '@heroicons/react/24/solid';
+import { ArrowLeftIcon, ArrowPathIcon, PlusIcon, ShareIcon, TicketIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/solid';
 import { SpinWheel } from '../components/SpinWheel';
 import { convexClient } from '../lib/convexClient';
 import { useRoom, useSquadActions } from '../lib/squadApi';
 import { useToast } from '../components/Toaster';
 import { sound } from '../audio/sound';
 import { getDiceBearAvatar } from '../utils/dicebear';
+
+interface RitualPack {
+  id: string;
+  label: string;
+  question: string;
+  optionHint: string;
+}
+
+// Workplace ritual presets: one tap fills the room, add your own options
+const RITUAL_PACKS: RitualPack[] = [
+  {
+    id: 'lunch',
+    label: 'Lunch lottery',
+    question: 'Where are we eating?',
+    optionHint: 'Ramen Bowl',
+  },
+  {
+    id: 'demo',
+    label: 'Demo roulette',
+    question: 'Who presents the demo this sprint?',
+    optionHint: 'Your name',
+  },
+  {
+    id: 'oncall',
+    label: 'On-call lottery',
+    question: 'Who is on call tonight?',
+    optionHint: 'Your name',
+  },
+  {
+    id: 'retro',
+    label: 'Retro roulette',
+    question: 'What is the first retro topic?',
+    optionHint: 'Sprint pace',
+  },
+  {
+    id: 'standup',
+    label: 'Standup order',
+    question: 'Who kicks off standup?',
+    optionHint: 'Your name',
+  },
+];
 
 interface SquadScreenProps {
   roomId: string | null;
@@ -70,8 +111,15 @@ function SquadLobby({ onOpenRoom, onBack }: { onOpenRoom: (id: string) => void; 
   const [question, setQuestion] = useState('');
   const [name, setName] = useState('');
   const [option, setOption] = useState('');
+  const [optionHint, setOptionHint] = useState('Ramen Bowl');
   const [busy, setBusy] = useState(false);
   const lastName = savedName();
+
+  const applyRitual = (pack: RitualPack) => {
+    sound.tap();
+    setQuestion(pack.question);
+    setOptionHint(pack.optionHint);
+  };
 
   const create = async () => {
     if (!question.trim() || !option.trim() || busy) return;
@@ -130,6 +178,26 @@ function SquadLobby({ onOpenRoom, onBack }: { onOpenRoom: (id: string) => void; 
       <div className="max-w-2xl mx-auto px-4 -mt-8 pb-10">
         <div className="bg-white rounded-3xl p-6 space-y-4">
           <div>
+            <label className="block text-[10px] font-black uppercase tracking-wider text-ink-400 mb-2">
+              Start from a ritual
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {RITUAL_PACKS.map((pack) => (
+                <button
+                  key={pack.id}
+                  onClick={() => applyRitual(pack)}
+                  className={`text-[12px] font-bold rounded-full px-3.5 py-2 border transition-colors ${
+                    question === pack.question
+                      ? 'bg-ink-900 border-ink-900 text-white'
+                      : 'bg-canvas border-ink-200 text-ink-700 hover:border-ink-900'
+                  }`}
+                >
+                  {pack.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
             <label className="block text-[10px] font-black uppercase tracking-wider text-ink-400 mb-1.5">
               The question
             </label>
@@ -159,7 +227,7 @@ function SquadLobby({ onOpenRoom, onBack }: { onOpenRoom: (id: string) => void; 
               <input
                 value={option}
                 onChange={(e) => setOption(e.target.value)}
-                placeholder="Ramen Bowl"
+                placeholder={optionHint}
                 className="w-full bg-canvas text-ink-900 font-bold text-sm rounded-xl px-4 py-3 border border-ink-200 focus:border-ink-900 focus:outline-none"
               />
             </div>
@@ -313,6 +381,17 @@ function SquadRoom({
           >
             <ShareIcon className="w-4 h-4" />
             <span>Copy invite link</span>
+          </button>
+          <button
+            onClick={() => {
+              sound.tap();
+              const liveUrl = `${window.location.origin}/e/${roomId}`;
+              window.open(liveUrl, '_blank', 'noopener');
+            }}
+            className="ml-2 mt-5 h-11 px-5 rounded-full bg-accent text-ink-900 text-[13px] font-bold inline-flex items-center gap-2 hover:bg-accent/90"
+          >
+            <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+            <span>Present on live screen</span>
           </button>
           <p className="mt-2.5 font-mono text-[11px] text-white/40 break-all">
             {link}
