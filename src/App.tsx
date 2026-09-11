@@ -329,6 +329,11 @@ export function App() {
             setActiveTab('machine');
             go('machine');
           }}
+          onOpenSpeed={() => go('speed')}
+          onGoSquad={() => {
+            setActiveTab('squad');
+            go('squad');
+          }}
           activeSection={activeSection}
         />
       )}
@@ -469,7 +474,7 @@ export function App() {
             <Logo size="sm" />
 
             <div className="text-[11px] text-ink-400">
-              No accounts • No cookies • 100% private
+              No accounts • No cookies • Verdicts stay on your device
             </div>
 
             <div className="flex items-center gap-5">

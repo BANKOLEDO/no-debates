@@ -37,7 +37,7 @@ export const TermsPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           </section>
           <section>
             <h2 className="font-bold text-ink-900 mb-1">Your content</h2>
-            <p>Your questions and options stay in your browser. We have no servers storing them, so we can't see, sell, or lose them.</p>
+            <p>Solo spins keep your questions and options in your browser. Squad rooms are shared by design — see the next section. Anonymized page-view counts (page name, day, count) are stored for our traffic dashboard.</p>
           </section>
           <section>
             <h2 className="font-bold text-ink-900 mb-1">Squad rooms</h2>

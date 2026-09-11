@@ -3,6 +3,8 @@ import {
   SpeakerWaveIcon,
   SpeakerXMarkIcon,
   ClockIcon,
+  BoltIcon,
+  UsersIcon,
   ArrowRightIcon
 } from '@heroicons/react/24/outline';
 import { sound } from '../audio/sound';
@@ -16,6 +18,8 @@ interface NavbarProps {
   onGoHome: () => void;
   onGoSection: (id: string) => void;
   onGoMachine: () => void;
+  onOpenSpeed: () => void;
+  onGoSquad: () => void;
   activeSection: string;
 }
 
@@ -27,6 +31,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onGoHome,
   onGoSection,
   onGoMachine,
+  onOpenSpeed,
+  onGoSquad,
   activeSection
 }) => {
   const link = (id: string) => () => {
@@ -102,6 +108,30 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {historyCount}
               </span>
             )}
+          </button>
+
+          {/* Squad (desktop; mobile uses the bottom tab bar) */}
+          <button
+            onClick={() => {
+              sound.tap();
+              onGoSquad();
+            }}
+            className="hidden md:flex h-9 px-3.5 rounded-full text-xs font-bold text-ink-700 hover:text-ink-900 bg-ink-50/80 hover:bg-ink-100 border border-ink-100 transition-all items-center space-x-1.5"
+          >
+            <UsersIcon className="w-3.5 h-3.5 text-ink-400" />
+            <span>Squad</span>
+          </button>
+
+          {/* Speed round (desktop; also on the machine header) */}
+          <button
+            onClick={() => {
+              sound.tap();
+              onOpenSpeed();
+            }}
+            className="hidden md:flex h-9 px-3.5 rounded-full text-xs font-bold text-ink-700 hover:text-ink-900 bg-ink-50/80 hover:bg-ink-100 border border-ink-100 transition-all items-center space-x-1.5"
+          >
+            <BoltIcon className="w-3.5 h-3.5 text-ink-400" />
+            <span>Speed</span>
           </button>
 
           {/* Primary Action Button */}

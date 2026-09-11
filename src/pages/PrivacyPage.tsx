@@ -29,11 +29,15 @@ export const PrivacyPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         <div className="bg-white rounded-2xl p-6 sm:p-8 space-y-5 text-sm text-ink-600 leading-relaxed">
           <section>
             <h2 className="font-bold text-ink-900 mb-1">Solo play stays on your device</h2>
-            <p>No accounts, no cookies, no analytics, no tracking pixels. Solo decisions never touch a server.</p>
+            <p>No accounts, no cookies, no tracking pixels. Your questions, options, and past verdicts never leave your device.</p>
           </section>
           <section>
             <h2 className="font-bold text-ink-900 mb-1">Squad rooms sync online</h2>
             <p>Squad rooms have to live somewhere every player can reach, so the question, options, names, and verdict are stored on our hosted database. Anyone with the room link can read them. Only share room links with people you trust. We also tally rooms, options, and players into aggregate usage counts; those numbers never contain your words.</p>
+          </section>
+          <section>
+            <h2 className="font-bold text-ink-900 mb-1">Anonymous page-view counts</h2>
+            <p>To keep our traffic dashboard honest, we count how many times each page is opened. We store only the page name, the day, and a count — no account, no IP, no location, nothing you typed. Solo verdicts are never included; only which screen was visited.</p>
           </section>
           <section>
             <h2 className="font-bold text-ink-900 mb-1">What is stored</h2>
@@ -41,7 +45,7 @@ export const PrivacyPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           </section>
           <section>
             <h2 className="font-bold text-ink-900 mb-1">Shared links</h2>
-            <p>Proof links encode the question and verdict inside the URL itself. Anyone with the link can read it. Only share what you're comfortable sharing.</p>
+            <p>Proof links encode the question and verdict inside the URL itself. Anyone with the link can read it. Only share what you're comfortable sharing. Receipt images and spin clips are generated in your browser and download straight to your device.</p>
           </section>
           <section>
             <h2 className="font-bold text-ink-900 mb-1">Third parties</h2>
