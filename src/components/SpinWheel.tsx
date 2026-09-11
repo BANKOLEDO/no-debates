@@ -37,13 +37,15 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
     const canvas = canvasRef.current;
     if (!canvas || options.length < 2) return;
     const dpr = window.devicePixelRatio || 1;
-    if (canvas.width !== SIZE * dpr) {
-      canvas.width = SIZE * dpr;
-      canvas.height = SIZE * dpr;
+    const k = Math.min(2.5, 2 * dpr);
+    const px = Math.round(SIZE * k);
+    if (canvas.width !== px) {
+      canvas.width = px;
+      canvas.height = px;
     }
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(k, 0, 0, k, 0, 0);
     ctx.clearRect(0, 0, SIZE, SIZE);
 
     const cx = SIZE / 2;
@@ -191,7 +193,7 @@ export const SpinWheel: React.FC<SpinWheelProps> = ({
       if (canvas && typeof canvas.captureStream === 'function' && typeof MediaRecorder !== 'undefined') {
         const mime = MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : 'video/mp4';
         const stream = canvas.captureStream(30);
-        const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2_500_000 });
+        const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 5_000_000 });
         chunksRef.current = [];
         rec.ondataavailable = (e) => {
           if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
