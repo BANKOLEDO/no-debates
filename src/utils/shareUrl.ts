@@ -66,6 +66,11 @@ export function decodeDecisionFromHash(hash: string): Partial<DecisionRecord> | 
   }
 }
 
+// Share links use the /v/ path so unfurls render per-verdict previews
+export function proofUrl(hash: string): string {
+  return `${window.location.origin}/v/${hash}`;
+}
+
 // Short receipt code tied to the real proof hash
 export function shortReceiptCode(hash: string): string {
   const clean = hash.replace(/[^a-z0-9]/gi, '').toLowerCase();
