@@ -38,8 +38,9 @@ async function getFont(): Promise<ArrayBuffer> {
   const urls = [...css.matchAll(/url\((https:[^)]+?\.woff2)\)/g)].map((m) => m[1]);
   const latin = urls[urls.length - 1];
   if (!latin) throw new Error("font css parse failed");
-  cachedFont = await fetch(latin).then((r) => r.arrayBuffer());
-  return cachedFont;
+  const buf: ArrayBuffer = await fetch(latin).then((r) => r.arrayBuffer());
+  cachedFont = buf;
+  return buf;
 }
 
 // Ticket image for link unfurls: /api/og-image?p=<payload>
@@ -86,7 +87,7 @@ export default async function handler(req: Request) {
     }
   );
 
-  const png = new Resvg(svg, { fit: { mode: "width", value: 1200 } })
+  const png = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } })
     .render()
     .asPng();
 
