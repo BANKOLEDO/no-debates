@@ -11,6 +11,7 @@
 import type * as admins from "../admins.js";
 import type * as analytics from "../analytics.js";
 import type * as rooms from "../rooms.js";
+import type * as visits from "../visits.js";
 
 import type {
   ApiFromModules,
@@ -22,6 +23,7 @@ declare const fullApi: ApiFromModules<{
   admins: typeof admins;
   analytics: typeof analytics;
   rooms: typeof rooms;
+  visits: typeof visits;
 }>;
 
 /**
