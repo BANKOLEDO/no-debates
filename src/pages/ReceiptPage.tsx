@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeftIcon, ArrowRightIcon, ArrowDownTrayIcon, DocumentDuplicateIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { sound } from '../audio/sound';
-import { generateChatSummary, shortReceiptCode } from '../utils/shareUrl';
+import { generateChatSummary, proofUrl, shortReceiptCode } from '../utils/shareUrl';
 import { downloadReceiptImage } from '../utils/receiptImage';
 
 export interface SharedVerdict {
@@ -39,7 +39,7 @@ export const ReceiptPage: React.FC<ReceiptPageProps> = ({ data, onOpenInMachine,
       verdict: data.verdict,
       timestamp: data.timestamp,
       shareCode: data.hash,
-      url: window.location.href,
+      url: proofUrl(data.hash),
     });
     try {
       await navigator.clipboard.writeText(text);
