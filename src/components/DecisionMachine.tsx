@@ -2,6 +2,7 @@ import React from 'react';
 import {
   ArrowPathIcon,
   ArrowDownTrayIcon,
+  ArrowUturnLeftIcon,
   FilmIcon,
   ShareIcon,
   PlusIcon,
@@ -35,6 +36,7 @@ export const DecisionMachine: React.FC<{ api: DecisionMachineApi }> = ({ api }) 
     addOption,
     removeOption,
     shuffleOptions,
+    resetMachine,
     spinDecision,
     handleSpinTick,
     handleSpinSettled,
@@ -118,6 +120,15 @@ export const DecisionMachine: React.FC<{ api: DecisionMachineApi }> = ({ api }) 
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-ink-400 font-semibold">Min 2 choices</span>
                 <button
+                  onClick={resetMachine}
+                  disabled={isSpinning}
+                  className="w-7 h-7 rounded-lg border border-ink-200 flex items-center justify-center text-ink-500 hover:text-ink-900 hover:border-ink-900 disabled:opacity-30 transition-colors"
+                  title="Clear machine"
+                  aria-label="Clear machine"
+                >
+                  <ArrowUturnLeftIcon className="w-3.5 h-3.5" />
+                </button>
+                <button
                   onClick={shuffleOptions}
                   disabled={isSpinning || options.length < 2}
                   className="w-7 h-7 rounded-lg border border-ink-200 flex items-center justify-center text-ink-500 hover:text-ink-900 hover:border-ink-900 disabled:opacity-30 transition-colors"
@@ -191,14 +202,22 @@ export const DecisionMachine: React.FC<{ api: DecisionMachineApi }> = ({ api }) 
 
           {/* Spin wheel */}
           <div className="mb-6 flex flex-col items-center">
-            <SpinWheel
-              options={options}
-              verdict={verdict}
-              request={spinRequest}
-              onTick={handleSpinTick}
-              onSettled={handleSpinSettled}
-              onClip={handleClipReady}
-            />
+            {options.length >= 2 ? (
+              <SpinWheel
+                options={options}
+                verdict={verdict}
+                request={spinRequest}
+                onTick={handleSpinTick}
+                onSettled={handleSpinSettled}
+                onClip={handleClipReady}
+              />
+            ) : (
+              <div className="w-full max-w-[300px] aspect-square rounded-full border-2 border-dashed border-ink-200 flex items-center justify-center text-center px-12">
+                <p className="text-xs font-bold text-ink-400 leading-relaxed">
+                  Load a template above or add two options to build your wheel
+                </p>
+              </div>
+            )}
             <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-ink-400">
               {isSpinning ? 'Spinning…' : verdict ? 'Official verdict locked' : 'Ready to spin'}
             </p>
