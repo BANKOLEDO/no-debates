@@ -33,7 +33,7 @@ export const PrivacyPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           </section>
           <section>
             <h2 className="font-bold text-ink-900 mb-1">Squad rooms sync online</h2>
-            <p>Squad rooms have to live somewhere every player can reach, so the question, options, names, and verdict are stored on our hosted database. Anyone with the room link can read them. Only share room links with people you trust.</p>
+            <p>Squad rooms have to live somewhere every player can reach, so the question, options, names, and verdict are stored on our hosted database. Anyone with the room link can read them. Only share room links with people you trust. We also tally rooms, options, and players into aggregate usage counts; those numbers never contain your words.</p>
           </section>
           <section>
             <h2 className="font-bold text-ink-900 mb-1">What is stored</h2>
