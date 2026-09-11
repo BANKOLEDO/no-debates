@@ -11,4 +11,14 @@ export default defineSchema({
     verdict: v.optional(v.string()),
     createdAt: v.number(),
   }),
+  admins: defineTable({
+    email: v.string(),
+    passHash: v.string(),
+    createdAt: v.number(),
+  }),
+  adminSessions: defineTable({
+    token: v.string(),
+    email: v.string(),
+    createdAt: v.number(),
+  }),
 });
