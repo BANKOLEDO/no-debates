@@ -25,6 +25,37 @@ export const overview = query({
       byDay[day] = (byDay[day] ?? 0) + 1;
     }
 
-    return { rooms: rooms.length, open, locked, options, members, byDay };
+    const visits = await ctx.db.query("visits").collect();
+    const visitsByDay: Record<string, number> = {};
+    const topRoutes: Record<string, number> = {};
+    let totalViews = 0;
+    for (const visit of visits) {
+      visitsByDay[visit.day] = (visitsByDay[visit.day] ?? 0) + visit.count;
+      topRoutes[visit.route] = (topRoutes[visit.route] ?? 0) + visit.count;
+      totalViews += visit.count;
+    }
+
+    const allDays = new Set([...Object.keys(byDay), ...Object.keys(visitsByDay)]);
+    const trend: { day: string; rooms: number; views: number }[] = [...allDays]
+      .sort()
+      .slice(-14)
+      .map((day) => ({
+        day,
+        rooms: byDay[day] ?? 0,
+        views: visitsByDay[day] ?? 0,
+      }));
+
+    return {
+      rooms: rooms.length,
+      open,
+      locked,
+      options,
+      members,
+      byDay,
+      totalViews,
+      visitsByDay,
+      topRoutes,
+      trend,
+    };
   },
 });
