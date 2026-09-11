@@ -9,6 +9,7 @@ import { FaqSection } from './components/FaqSection';
 import { CtaSection } from './components/CtaSection';
 import { ProductBottomNav, type BottomTab } from './components/ProductBottomNav';
 import { MachinePage } from './pages/MachinePage';
+import { SpeedRoundPage } from './pages/SpeedRoundPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AdminPage } from './admin/AdminPage';
 import { EmbedPage } from './pages/EmbedPage';
@@ -28,12 +29,13 @@ import { DecisionRecord, DecisionPreset } from './types';
 const STORAGE_KEY = 'nodebates_history_v5';
 const PRESETS_KEY = 'nodebates_presets_v1';
 
-type Route = 'home' | 'machine' | 'receipt' | 'history' | 'terms' | 'privacy' | 'squad' | 'nodb-admin' | 'embed' | 'notfound';
+type Route = 'home' | 'machine' | 'speed' | 'receipt' | 'history' | 'terms' | 'privacy' | 'squad' | 'nodb-admin' | 'embed' | 'notfound';
 
 function parseRoute(): Route {
   const h = window.location.hash;
   if (h === '' || h === '#/') return 'home';
   if (h === '#/machine') return 'machine';
+  if (h === '#/speed') return 'speed';
   if (h === '#/history') return 'history';
   if (h === '#/terms') return 'terms';
   if (h === '#/privacy') return 'privacy';
@@ -372,6 +374,17 @@ export function App() {
             historyCount={history.length}
             onBack={() => go('home')}
             onOpenHistory={() => go('history')}
+            onOpenSpeed={() => go('speed')}
+          />
+        </main>
+      )}
+
+      {route === 'speed' && (
+        <main className="flex-1 w-full">
+          <SpeedRoundPage
+            onSaveRecord={handleSaveRecord}
+            onOpenReceipt={openReceiptData}
+            onBack={() => go('home')}
           />
         </main>
       )}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeftIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ClockIcon, BoltIcon } from '@heroicons/react/24/outline';
 import { useDecisionMachine } from '../hooks/useDecisionMachine';
 import { DecisionMachine } from '../components/DecisionMachine';
 import { DecisionRecord, DecisionPreset } from '../types';
@@ -13,6 +13,7 @@ interface MachinePageProps {
   historyCount: number;
   onBack: () => void;
   onOpenHistory: () => void;
+  onOpenSpeed: () => void;
 }
 
 // Product screen: slim bar, machine first, nothing else
@@ -23,6 +24,7 @@ export const MachinePage: React.FC<MachinePageProps> = ({
   historyCount,
   onBack,
   onOpenHistory,
+  onOpenSpeed,
 }) => {
   const machine = useDecisionMachine({ onSaveRecord, initialData, presets });
 
@@ -43,21 +45,33 @@ export const MachinePage: React.FC<MachinePageProps> = ({
           <span className="text-[13px] font-extrabold tracking-tight">
             Decision Machine
           </span>
-          <button
-            onClick={() => {
-              sound.tap();
-              onOpenHistory();
-            }}
-            className="hidden sm:flex items-center gap-1.5 text-[13px] font-bold text-white/60 hover:text-white transition-colors"
-          >
-            <ClockIcon className="w-4 h-4" />
-            <span>History</span>
-            {historyCount > 0 && (
-              <span className="bg-white text-ink-900 text-[11px] font-extrabold min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center">
-                {historyCount}
-              </span>
-            )}
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                sound.tap();
+                onOpenSpeed();
+              }}
+              className="hidden sm:flex items-center gap-1.5 text-[13px] font-bold text-white/60 hover:text-white transition-colors"
+            >
+              <BoltIcon className="w-4 h-4" />
+              <span>Speed</span>
+            </button>
+            <button
+              onClick={() => {
+                sound.tap();
+                onOpenHistory();
+              }}
+              className="hidden sm:flex items-center gap-1.5 text-[13px] font-bold text-white/60 hover:text-white transition-colors"
+            >
+              <ClockIcon className="w-4 h-4" />
+              <span>History</span>
+              {historyCount > 0 && (
+                <span className="bg-white text-ink-900 text-[11px] font-extrabold min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center">
+                  {historyCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
