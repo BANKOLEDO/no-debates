@@ -8,7 +8,6 @@ import { SectionDivider } from './components/SectionDivider';
 import { FaqSection } from './components/FaqSection';
 import { CtaSection } from './components/CtaSection';
 import { ProductBottomNav, type BottomTab } from './components/ProductBottomNav';
-import { Onboarding } from './components/Onboarding';
 import { MachinePage } from './pages/MachinePage';
 import { ReceiptPage, type SharedVerdict } from './pages/ReceiptPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -22,7 +21,6 @@ import { PRESETS } from './utils/presets';
 import { DecisionRecord, DecisionPreset } from './types';
 
 const STORAGE_KEY = 'nodebates_history_v5';
-const ONBOARDED_KEY = 'nd_onboarded';
 const PRESETS_KEY = 'nodebates_presets_v1';
 
 type Route = 'home' | 'machine' | 'receipt' | 'history' | 'terms' | 'privacy';
@@ -65,14 +63,6 @@ export function App() {
   const [sharedData, setSharedData] = useState<SharedVerdict | null>(() => initialLocation().shared);
   const [activeTab, setActiveTab] = useState<BottomTab>('machine');
   const [activeSection, setActiveSection] = useState('');
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    try { return !localStorage.getItem(ONBOARDED_KEY); } catch { return true; }
-  });
-
-  const handleFinishOnboarding = () => {
-    try { localStorage.setItem(ONBOARDED_KEY, '1'); } catch { /* noop */ }
-    setShowOnboarding(false);
-  };
 
   useEffect(() => {
     try {
@@ -261,10 +251,6 @@ export function App() {
   return (
     <MotionConfig reducedMotion="user">
     <div className="min-h-screen bg-canvas text-ink-900 flex flex-col font-sans selection:bg-accent selection:text-white">
-      {showOnboarding && (
-        <Onboarding onFinish={handleFinishOnboarding} />
-      )}
-
       <Navbar
         isMuted={isMuted}
         onToggleMute={() => {
