@@ -35,7 +35,7 @@ export const BentoShowcase: React.FC = () => {
 
   const handleCopyDemo = async () => {
     sound.click();
-    await navigator.clipboard.writeText(`${window.location.origin}/#eyJxIjoiV2hlcmUgdG8gZWF0PyIsInYiOiJSYW1lbiJ9`);
+    await navigator.clipboard.writeText(`${window.location.origin}/v/eyJxIjoiV2hlcmUgdG8gZWF0PyIsInYiOiJSYW1lbiJ9`);
     setCopiedDemo(true);
     setTimeout(() => setCopiedDemo(false), 2000);
   };
@@ -183,7 +183,7 @@ export const BentoShowcase: React.FC = () => {
 
           <div className="bg-canvas border border-ink-200 rounded-xl p-3 text-[11px] font-mono text-ink-500 break-all">
             <div className="text-[10px] text-ink-400 font-bold mb-1">Sample Proof URL:</div>
-            <div className="text-ink-800 truncate font-semibold">{window.location.host}/#eyJxIjoiRG...</div>
+            <div className="text-ink-800 truncate font-semibold">{window.location.host}/v/eyJxIjoiRG...</div>
           </div>
 
           <button
