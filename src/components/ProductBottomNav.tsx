@@ -3,18 +3,18 @@ import {
   HomeIcon,
   BoltIcon,
   ClockIcon,
-  ArrowUpIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/solid';
 import { sound } from '../audio/sound';
 
-export type BottomTab = 'home' | 'machine' | 'history' | 'top';
+export type BottomTab = 'home' | 'machine' | 'history' | 'squad';
 
 interface ProductBottomNavProps {
   active: BottomTab;
   onGoHome: () => void;
   onOpenMachine: () => void;
   onOpenHistory: () => void;
-  onScrollTop: () => void;
+  onGoSquad: () => void;
   historyCount: number;
 }
 
@@ -22,7 +22,7 @@ const TABS: { id: BottomTab; label: string; Icon: typeof BoltIcon }[] = [
   { id: 'home', label: 'Home', Icon: HomeIcon },
   { id: 'machine', label: 'Machine', Icon: BoltIcon },
   { id: 'history', label: 'History', Icon: ClockIcon },
-  { id: 'top', label: 'Top', Icon: ArrowUpIcon },
+  { id: 'squad', label: 'Squad', Icon: UserGroupIcon },
 ];
 
 const BAR_H = 66;
@@ -34,7 +34,7 @@ export const ProductBottomNav: React.FC<ProductBottomNavProps> = ({
   onGoHome,
   onOpenMachine,
   onOpenHistory,
-  onScrollTop,
+  onGoSquad,
   historyCount,
 }) => {
   const barRef = useRef<HTMLDivElement>(null);
@@ -121,7 +121,7 @@ export const ProductBottomNav: React.FC<ProductBottomNavProps> = ({
     if (tab === 'home') onGoHome();
     if (tab === 'machine') onOpenMachine();
     if (tab === 'history') onOpenHistory();
-    if (tab === 'top') onScrollTop();
+    if (tab === 'squad') onGoSquad();
   };
 
   const ActiveIcon = TABS[index].Icon;
