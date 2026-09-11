@@ -9,13 +9,15 @@ interface FullWidthHeroProps {
   presets?: DecisionPreset[];
   onLaunchMachine?: () => void;
   onSelectPreset?: (preset: DecisionPreset) => void;
+  onSquad?: () => void;
 }
 
 // Landing hero only. No machine inside.
 export const FullWidthHero: React.FC<FullWidthHeroProps> = ({
   presets = PRESETS,
   onLaunchMachine,
-  onSelectPreset
+  onSelectPreset,
+  onSquad
 }) => {
   const scrollToMachine = () => {
     if (onLaunchMachine) {
@@ -42,16 +44,16 @@ export const FullWidthHero: React.FC<FullWidthHeroProps> = ({
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-gradient-to-b from-[#F9E8DE]/60 via-transparent to-transparent -z-10 pointer-events-none" />
 
       {/* Desktop hero */}
-      <div className="hidden lg:flex flex-col items-center max-w-6xl mx-auto min-h-[560px] relative justify-center pt-8 mb-16">
-        <HeroArc variant="desktop" onPick={handlePick} />
-        <HeroHeader onLaunch={scrollToMachine} />
-      </div>
+        <div className="hidden lg:flex flex-col items-center max-w-6xl mx-auto min-h-[560px] relative justify-center pt-8 mb-16">
+          <HeroArc variant="desktop" onPick={handlePick} />
+          <HeroHeader onLaunch={scrollToMachine} onSquad={onSquad} />
+        </div>
 
-      {/* Mobile hero */}
-      <div className="lg:hidden flex flex-col items-center max-w-md mx-auto relative justify-center pt-6 mb-12">
-        <HeroArc variant="mobile" onPick={handlePick} />
-        <HeroHeader compact onLaunch={scrollToMachine} />
-      </div>
+        {/* Mobile hero */}
+        <div className="lg:hidden flex flex-col items-center max-w-md mx-auto relative justify-center pt-6 mb-12">
+          <HeroArc variant="mobile" onPick={handlePick} />
+          <HeroHeader compact onLaunch={scrollToMachine} onSquad={onSquad} />
+        </div>
 
     </section>
   );
