@@ -236,6 +236,9 @@ function SquadRoom({
   }
 
   const locked = room.status === 'locked';
+  const myRawName = name.trim() || lastName;
+  const myName = myRawName || 'Friend';
+  const isCreator = myRawName === room.createdBy;
   const link = `${window.location.origin}${window.location.pathname}#/squad/${roomId}`;
 
   const submitOption = async () => {
@@ -274,12 +277,12 @@ function SquadRoom({
   const spin = async () => {
     sound.coin();
     try {
-      await spinRoom(roomId);
+      await spinRoom(roomId, myName);
       sound.win();
     } catch {
       toast.error({
         title: 'Could not lock the verdict',
-        message: 'Someone else may have spun. Check your connection.',
+        message: 'Only the room creator can seal the spin.',
       });
     }
   };
@@ -419,14 +422,25 @@ function SquadRoom({
             </button>
           </div>
         ) : (
-          <button
-            onClick={spin}
-            disabled={room.options.length < 2}
-            className="btn-accent w-full h-[52px] text-[15px] font-extrabold flex items-center justify-center gap-2 disabled:opacity-40"
-          >
-            <ArrowPathIcon className="w-5 h-5" />
-            <span>Spin for the squad ({room.options.length})</span>
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={spin}
+              disabled={room.options.length < 2 || !isCreator}
+              className="btn-accent w-full h-[52px] text-[15px] font-extrabold flex items-center justify-center gap-2 disabled:opacity-40"
+            >
+              <ArrowPathIcon className="w-5 h-5" />
+              <span>
+                {isCreator
+                  ? `Spin for the squad (${room.options.length})`
+                  : 'Spin is locked to the creator'}
+              </span>
+            </button>
+            {!isCreator && (
+              <p className="text-center text-[12px] font-bold text-ink-500">
+                Only {room.createdBy} can seal the verdict.
+              </p>
+            )}
+          </div>
         )}
       </div>
     </div>

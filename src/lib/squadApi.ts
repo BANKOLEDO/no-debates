@@ -9,6 +9,7 @@ export interface SquadRoom {
   members: string[];
   status: "open" | "locked";
   verdict?: string;
+  createdBy: string;
   createdAt: number;
 }
 
@@ -29,7 +30,7 @@ export function useSquadActions() {
       createRoom(args),
     addOption: (args: { roomId: string; name: string; option: string }) =>
       addOption({ ...args, roomId: args.roomId as Id<"rooms"> }),
-    spinRoom: (roomId: string) =>
-      spinRoom({ roomId: roomId as Id<"rooms"> }),
+    spinRoom: (roomId: string, spinner: string) =>
+      spinRoom({ roomId: roomId as Id<"rooms">, spinner }),
   };
 }

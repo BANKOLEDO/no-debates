@@ -9,6 +9,7 @@ export default defineSchema({
     members: v.array(v.string()),
     status: v.union(v.literal("open"), v.literal("locked")),
     verdict: v.optional(v.string()),
+    createdBy: v.string(),
     createdAt: v.number(),
   }),
   admins: defineTable({

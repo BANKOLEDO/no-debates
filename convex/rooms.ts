@@ -15,6 +15,7 @@ export const createRoom = mutation({
       members: [name],
       status: "open",
       verdict: undefined,
+      createdBy: name,
       createdAt: Date.now(),
     });
   },
@@ -42,11 +43,13 @@ export const addOption = mutation({
   },
 });
 
+// Only the creator who opened the room may seal the verdict.
 export const spinRoom = mutation({
-  args: { roomId: v.id("rooms") },
+  args: { roomId: v.id("rooms"), spinner: v.string() },
   handler: async (ctx, args) => {
     const room = await ctx.db.get(args.roomId);
     if (!room || room.status !== "open" || room.options.length < 2) return;
+    if (room.createdBy && clean(args.spinner) !== room.createdBy) return;
     const winner = room.options[Math.floor(Math.random() * room.options.length)];
     await ctx.db.patch(args.roomId, { status: "locked", verdict: winner });
   },
