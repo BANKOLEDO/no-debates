@@ -40,6 +40,10 @@ export const TermsPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <p>Your questions and options stay in your browser. We have no servers storing them, so we can't see, sell, or lose them.</p>
           </section>
           <section>
+            <h2 className="font-bold text-ink-900 mb-1">Squad rooms</h2>
+            <p>Room links are unlisted but open to anyone who has them. Don't post anything illegal, hateful, or personal in a room. We may remove rooms that abuse the service.</p>
+          </section>
+          <section>
             <h2 className="font-bold text-ink-900 mb-1">As-is</h2>
             <p>The app is provided as-is, without warranties. If a verdict sends you to a bad taco, that's between you and the taco.</p>
           </section>
