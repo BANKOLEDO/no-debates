@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { convexClient } from '../lib/convexClient';
 import { LogoMark } from '../components/Logo';
 import { sound } from '../audio/sound';
@@ -131,6 +132,7 @@ function LoginForm({ onToken }: { onToken: (t: string) => void }) {
   const login = useMutation('admins:login' as any);
   const [email, setEmail] = useState('');
   const [passcode, setPasscode] = useState('');
+  const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -162,17 +164,34 @@ function LoginForm({ onToken }: { onToken: (t: string) => void }) {
         autoComplete="email"
         className="w-full bg-canvas text-sm font-bold rounded-xl px-4 py-3 border border-ink-200 focus:border-ink-900 focus:outline-none"
       />
-      <input
-        value={passcode}
-        onChange={(e) => setPasscode(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') submit();
-        }}
-        placeholder="Passcode"
-        type="password"
-        autoComplete="current-password"
-        className="w-full bg-canvas text-sm font-bold rounded-xl px-4 py-3 border border-ink-200 focus:border-ink-900 focus:outline-none"
-      />
+      <div className="relative">
+        <input
+          value={passcode}
+          onChange={(e) => setPasscode(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') submit();
+          }}
+          placeholder="Passcode"
+          type={showPass ? 'text' : 'password'}
+          autoComplete="current-password"
+          className="w-full bg-canvas text-sm font-bold rounded-xl px-4 py-3 pr-11 border border-ink-200 focus:border-ink-900 focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={() => {
+            sound.tap();
+            setShowPass((s) => !s);
+          }}
+          aria-label={showPass ? 'Hide passcode' : 'Show passcode'}
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center text-ink-500 hover:text-ink-900 hover:bg-ink-100 transition-colors"
+        >
+          {showPass ? (
+            <EyeSlashIcon className="w-[18px] h-[18px]" />
+          ) : (
+            <EyeIcon className="w-[18px] h-[18px]" />
+          )}
+        </button>
+      </div>
       {error && <p className="text-[12px] font-bold text-red-600">{error}</p>}
       <button
         onClick={submit}
