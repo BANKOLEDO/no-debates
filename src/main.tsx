@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { Analytics } from '@vercel/analytics/react';
 import { ConvexProvider } from 'convex/react';
 import { convexClient } from './lib/convexClient';
 import App from './App';
@@ -14,5 +15,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     ) : (
       <App />
     )}
+    <Analytics />
   </React.StrictMode>,
 );
