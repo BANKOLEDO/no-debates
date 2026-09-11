@@ -12,10 +12,11 @@ const PILLARS: [string, string][] = [
 interface HeroHeaderProps {
   compact?: boolean;
   onLaunch: () => void;
+  onSquad?: () => void;
 }
 
 // Headline, sub, CTA + pillars
-export const HeroHeader: React.FC<HeroHeaderProps> = ({ compact = false, onLaunch }) => (
+export const HeroHeader: React.FC<HeroHeaderProps> = ({ compact = false, onLaunch, onSquad }) => (
   <>
     <div className={compact ? 'text-center max-w-md mx-auto px-4' : 'text-center max-w-2xl mx-auto z-20'}>
       <h1 className={`font-black text-ink-900 tracking-tight leading-[1.06] mb-4 ${compact ? 'text-4xl' : 'text-5xl sm:text-6xl'}`}>
@@ -42,6 +43,19 @@ export const HeroHeader: React.FC<HeroHeaderProps> = ({ compact = false, onLaunc
           <span>Launch The Machine</span>
           <ArrowRightIcon className="w-4 h-4 text-accent" />
         </button>
+        {onSquad && (
+          <div className="mt-4">
+            <button
+              onClick={() => {
+                sound.tap();
+                onSquad();
+              }}
+              className="text-[13px] font-bold text-ink-500 hover:text-accent underline underline-offset-4 transition-colors"
+            >
+              Or start a squad spin
+            </button>
+          </div>
+        )}
       </Rise>
     </div>
 
