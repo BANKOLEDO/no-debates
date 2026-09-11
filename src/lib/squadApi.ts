@@ -1,7 +1,9 @@
 import { useMutation, useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { Id } from "../../convex/_generated/dataModel";
 
 export interface SquadRoom {
-  _id: string;
+  _id: Id<"rooms">;
   question: string;
   options: string[];
   members: string[];
@@ -10,25 +12,24 @@ export interface SquadRoom {
   createdAt: number;
 }
 
-// Function paths are strings until `npx convex dev` generates typed api
-export function useRoom(roomId: string | null): SquadRoom | undefined | null {
+export function useRoom(roomId: string | null) {
   return useQuery(
-    "rooms:getRoom" as any,
-    roomId ? ({ roomId } as any) : "skip"
-  ) as any;
+    api.rooms.getRoom,
+    roomId ? { roomId: roomId as Id<"rooms"> } : "skip"
+  );
 }
 
 export function useSquadActions() {
-  const createRoom = useMutation("rooms:createRoom" as any);
-  const addOption = useMutation("rooms:addOption" as any);
-  const spinRoom = useMutation("rooms:spinRoom" as any);
+  const createRoom = useMutation(api.rooms.createRoom);
+  const addOption = useMutation(api.rooms.addOption);
+  const spinRoom = useMutation(api.rooms.spinRoom);
 
   return {
     createRoom: (args: { question: string; name: string; option: string }) =>
-      createRoom(args as any) as Promise<string>,
+      createRoom(args),
     addOption: (args: { roomId: string; name: string; option: string }) =>
-      addOption(args as any) as Promise<void>,
+      addOption({ ...args, roomId: args.roomId as Id<"rooms"> }),
     spinRoom: (roomId: string) =>
-      spinRoom({ roomId } as any) as Promise<void>,
+      spinRoom({ roomId: roomId as Id<"rooms"> }),
   };
 }
