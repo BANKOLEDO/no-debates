@@ -154,7 +154,12 @@ export function App() {
   }, [route]);
 
   const go = (r: Route) => {
-    window.location.hash = r === 'home' ? '#/' : `#/${r}`;
+    const h = r === 'home' ? '#/' : `#/${r}`;
+    if (window.location.hash === h) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.location.hash = h;
+    }
   };
 
   const goSection = (id: string) => {
