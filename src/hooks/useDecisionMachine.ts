@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { sound } from '../audio/sound';
 import { DecisionRecord, DecisionPreset } from '../types';
-import { encodeDecisionToHash, generateChatSummary } from '../utils/shareUrl';
+import { encodeDecisionToHash, generateChatSummary, proofUrl } from '../utils/shareUrl';
 import { PRESETS } from '../utils/presets';
 
 interface UseDecisionMachineOptions {
@@ -171,7 +171,7 @@ export function useDecisionMachine({
       verdict,
       timestamp
     });
-    const url = `${window.location.origin}${window.location.pathname}#${hash}`;
+    const url = proofUrl(hash);
     const chatText = generateChatSummary({
       id: 'shared',
       question: question || 'Decision',
@@ -196,7 +196,7 @@ export function useDecisionMachine({
       verdict,
       timestamp: Date.now()
     });
-    const url = `${window.location.origin}${window.location.pathname}#${hash}`;
+    const url = proofUrl(hash);
     navigator.clipboard.writeText(url);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
