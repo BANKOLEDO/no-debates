@@ -111,10 +111,21 @@ export async function downloadReceiptImage(data: ReceiptData): Promise<void> {
   ctx.fillText(stamp, W - P - measure.measureText(stamp).width, y + 23);
   y += 36 + 30;
 
-  // Eyebrow
+  // Eyebrow + fair chip
   ctx.fillStyle = ACCENT;
   ctx.font = `800 13px ${FONT}`;
   ctx.fillText('S E A L E D   V E R D I C T', P, y);
+  const fairLabel = 'FAIR SELECTOR';
+  ctx.font = `800 12px ${FONT}`;
+  const fairW = measure.measureText(fairLabel).width + 28;
+  ctx.fillStyle = ACCENT;
+  ctx.beginPath();
+  ctx.roundRect(W - P - fairW, y - 18, fairW, 24, 12);
+  ctx.fill();
+  ctx.fillStyle = INK;
+  ctx.fillText(fairLabel, W - P - fairW + 14, y - 2);
+  ctx.fillStyle = ACCENT;
+  ctx.font = `800 13px ${FONT}`;
   y += 18 + 30;
 
   // Question first

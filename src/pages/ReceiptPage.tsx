@@ -92,6 +92,9 @@ export const ReceiptPage: React.FC<ReceiptPageProps> = ({ data, onOpenInMachine,
             <span className="text-[11px] font-bold text-white/70 bg-white/10 rounded-full px-3 py-1.5">
               {data.options.length} options weighed
             </span>
+            <span className="rotate-[-2deg] bg-accent text-ink-900 text-[11px] font-extrabold rounded-full px-3 py-1.5 border border-accent">
+              FAIR SELECTOR
+            </span>
           </div>
         </div>
       </div>
@@ -140,6 +143,9 @@ export const ReceiptPage: React.FC<ReceiptPageProps> = ({ data, onOpenInMachine,
             <span>HASH: #nd-{shortReceiptCode(data.hash)}</span>
             <span className="text-emerald-600 font-bold">100% Unbiased</span>
           </div>
+          <p className="text-[10px] text-ink-400 leading-relaxed">
+            Timestamped + hashed at seal time. Any edit breaks the proof.
+          </p>
         </div>
 
         {/* Actions */}

@@ -8,7 +8,7 @@ function esc(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
-function decodePayload(p: string): { q: string; o: string[]; v: number } | null {
+function decodePayload(p: string): { q: string; o: string[]; v: number; t?: number } | null {
   try {
     let b64 = p.replace(/-/g, '+').replace(/_/g, '/');
     while (b64.length % 4) b64 += '=';
@@ -17,15 +17,20 @@ function decodePayload(p: string): { q: string; o: string[]; v: number } | null 
     const parsed = JSON.parse(new TextDecoder().decode(bytes));
     if (parsed.q && Array.isArray(parsed.o)) {
       const v = typeof parsed.v === 'number' ? parsed.v : parsed.o.indexOf(parsed.v);
-      return { q: parsed.q, o: parsed.o, v };
+      return { q: parsed.q, o: parsed.o, v, t: parsed.t };
     }
     const legacy = JSON.parse(decodeURIComponent(atob(b64)));
     if (!legacy.q || !Array.isArray(legacy.o)) return null;
     const v = typeof legacy.v === 'number' ? legacy.v : legacy.o.indexOf(legacy.v);
-    return { q: legacy.q, o: legacy.o, v };
+    return { q: legacy.q, o: legacy.o, v, t: legacy.t };
   } catch {
     return null;
   }
+}
+
+function stamp(ts?: number): string {
+  const d = new Date((ts && ts > 1e12 ? ts : (ts ?? 0) * 1000) || Date.now());
+  return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} · ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
 }
 
 // Bot-friendly verdict page: crawlers read OG tags, humans bounce to the app
@@ -37,17 +42,19 @@ export default function handler(req: Request) {
     data && data.v >= 0 && data.v < data.o.length ? data.o[data.v] : 'A verdict';
   const question = data?.q ?? 'A group decision settled with zero debate.';
   const image = `${url.origin}/api/og-image?p=${encodeURIComponent(p)}`;
+  const description = `${esc(question)} · ${data?.o.length ?? '?'} options weighed · sealed, timestamped & hashed · ${stamp(data?.t)}`;
 
   const html = `<!doctype html><html><head><meta charset="utf-8" />
 <title>${esc(verdict)} wins — No Debates</title>
+<meta name="description" content="${description}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="No Debates" />
 <meta property="og:title" content="${esc(verdict)} wins the debate" />
-<meta property="og:description" content="${esc(question)}" />
+<meta property="og:description" content="${description}" />
 <meta property="og:image" content="${image}" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${esc(verdict)} wins the debate" />
-<meta name="twitter:description" content="${esc(question)}" />
+<meta name="twitter:description" content="${description}" />
 <meta name="twitter:image" content="${image}" />
 <meta http-equiv="refresh" content="0;url=/#${p}" />
 </head><body style="background:#141312;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh"><p>Opening the sealed verdict…</p><script>location.replace('/#${p}')</script></body></html>`;
