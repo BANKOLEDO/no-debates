@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeftIcon,
   ArrowPathIcon,
@@ -21,6 +21,7 @@ interface SpeedRoundPageProps {
 type Phase = 'setup' | 'round' | 'ended';
 
 interface Round {
+  roundNo: number;
   pair: [string, string];
   winnerIndex: number;
   nonce: number;
@@ -40,12 +41,10 @@ export const SpeedRoundPage: React.FC<SpeedRoundPageProps> = ({
   const [round, setRound] = useState<Round | null>(null);
   const [standings, setStandings] = useState<Record<string, number>>({});
   const [roundsPlayed, setRoundsPlayed] = useState(0);
-  const roundTotal = useRef(0);
 
   const start = () => {
     if (pool.length < 4 || question.trim().length < 2) return;
     sound.click();
-    roundTotal.current = 0;
     setStandings(Object.fromEntries(pool.map((o) => [o, 0])));
     setRoundsPlayed(0);
     setPhase('round');
@@ -59,7 +58,12 @@ export const SpeedRoundPage: React.FC<SpeedRoundPageProps> = ({
     let i2 = Math.floor(Math.random() * (poolNow.length - 1));
     if (i2 >= i1) i2 += 1;
     if (playSound) sound.tap();
-    setRound({ pair: [poolNow[i1], poolNow[i2]], winnerIndex: -1, nonce: Date.now() });
+    setRound({
+      roundNo: roundsPlayed + 1,
+      pair: [poolNow[i1], poolNow[i2]],
+      winnerIndex: -1,
+      nonce: Date.now(),
+    });
   };
 
   const handleSettled = (winnerIndex: number, roundSeed: Round) => {
@@ -68,7 +72,6 @@ export const SpeedRoundPage: React.FC<SpeedRoundPageProps> = ({
     setRound({ ...roundSeed, winnerIndex });
     setStandings((prev) => ({ ...prev, [winner]: (prev[winner] ?? 0) + 1 }));
     setRoundsPlayed((n) => n + 1);
-    roundTotal.current += 1;
   };
 
   const endSprint = () => {
@@ -109,6 +112,14 @@ export const SpeedRoundPage: React.FC<SpeedRoundPageProps> = ({
       return () => clearTimeout(timer);
     }
   }, [round, phase]); // eslint-disable-next-line react-hooks/exhaustive-deps
+
+  const spinRequest = useMemo(
+    () =>
+      round && round.winnerIndex < 0
+        ? { winnerIndex: Math.floor(Math.random() * 2), nonce: round.nonce }
+        : null,
+    [round]
+  );
 
   const champCandidate = phase === 'ended'
     ? Object.entries(standings).sort((a, b) => b[1] - a[1])[0]
@@ -255,15 +266,13 @@ export const SpeedRoundPage: React.FC<SpeedRoundPageProps> = ({
           <>
             <div className="bg-white rounded-3xl p-6 flex flex-col items-center">
               <p className="text-[10px] font-black uppercase tracking-widest text-ink-400 mb-4">
-                Round {roundsPlayed + 1} · {round.pair[0]} vs {round.pair[1]}
+                Round {round.roundNo} · {round.pair[0]} vs {round.pair[1]}
               </p>
               <SpinWheel
                 key={round.nonce}
                 options={round.pair}
                 verdict={round.winnerIndex >= 0 ? round.pair[round.winnerIndex] : null}
-                request={
-                  round.winnerIndex >= 0 ? null : { winnerIndex: Math.floor(Math.random() * 2), nonce: round.nonce }
-                }
+                request={spinRequest}
                 onTick={() => sound.tick()}
                 onSettled={(idx) => handleSettled(idx, round)}
               />
