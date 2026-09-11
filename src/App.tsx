@@ -11,6 +11,7 @@ import { ProductBottomNav, type BottomTab } from './components/ProductBottomNav'
 import { MachinePage } from './pages/MachinePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AdminPage } from './admin/AdminPage';
+import { convexClient } from './lib/convexClient';
 import { SquadScreen } from './pages/SquadPage';
 import { ReceiptPage, type SharedVerdict } from './pages/ReceiptPage';
 import { HistoryPage } from './pages/HistoryPage';
@@ -134,6 +135,11 @@ export function App() {
     if (route === 'home') setActiveTab('home');
     if (route === 'machine') setActiveTab('machine');
     if (route === 'squad') setActiveTab('squad');
+    if (convexClient) {
+      (convexClient.mutation as any)('visits:trackPageView', { route }).catch(() => {
+        // analytics best-effort; never break navigation on it
+      });
+    }
   }, [route]);
 
   // Highlights the nav link for the section in view
