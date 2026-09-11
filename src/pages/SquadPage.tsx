@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { ArrowLeftIcon, ArrowPathIcon, PlusIcon, ShareIcon, ArrowRightIcon } from '@heroicons/react/24/solid';
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowLeftIcon, ArrowPathIcon, PlusIcon, ShareIcon, TicketIcon } from '@heroicons/react/24/solid';
+import { SpinWheel } from '../components/SpinWheel';
 import { convexClient } from '../lib/convexClient';
 import { useRoom, useSquadActions } from '../lib/squadApi';
 import { sound } from '../audio/sound';
@@ -8,7 +9,7 @@ import { getDiceBearAvatar } from '../utils/dicebear';
 interface SquadScreenProps {
   roomId: string | null;
   onOpenRoom: (id: string) => void;
-  onOpenInMachine: (question: string, options: string[], verdict: string) => void;
+  onViewReceipt: (question: string, options: string[], verdict: string) => void;
   onBack: () => void;
 }
 
@@ -54,34 +55,36 @@ export const SquadScreen: React.FC<SquadScreenProps> = (props) => {
   return <SquadPage {...props} />;
 };
 
-const SquadPage: React.FC<SquadScreenProps> = ({ roomId, onOpenRoom, onOpenInMachine, onBack }) => {
+const SquadPage: React.FC<SquadScreenProps> = ({ roomId, onOpenRoom, onViewReceipt, onBack }) => {
   if (!roomId) {
     return <SquadLobby onOpenRoom={onOpenRoom} onBack={onBack} />;
   }
-  return <SquadRoom roomId={roomId} onOpenRoom={onOpenRoom} onOpenInMachine={onOpenInMachine} onBack={onBack} />;
+  return <SquadRoom roomId={roomId} onOpenRoom={onOpenRoom} onViewReceipt={onViewReceipt} onBack={onBack} />;
 };
 
 // Create a room
 function SquadLobby({ onOpenRoom, onBack }: { onOpenRoom: (id: string) => void; onBack: () => void }) {
   const { createRoom } = useSquadActions();
   const [question, setQuestion] = useState('');
-  const [name, setName] = useState(savedName);
+  const [name, setName] = useState('');
   const [option, setOption] = useState('');
   const [busy, setBusy] = useState(false);
+  const lastName = savedName();
 
   const create = async () => {
     if (!question.trim() || !option.trim() || busy) return;
     sound.click();
     setBusy(true);
     try {
+      const who = name.trim() || lastName || 'Player 1';
       try {
-        localStorage.setItem(NAME_KEY, name.trim() || 'Player 1');
+        localStorage.setItem(NAME_KEY, who);
       } catch {
         // noop
       }
       const id = await createRoom({
         question: question.trim(),
-        name: name.trim() || 'Player 1',
+        name: who,
         option: option.trim(),
       });
       onOpenRoom(id);
@@ -138,7 +141,7 @@ function SquadLobby({ onOpenRoom, onBack }: { onOpenRoom: (id: string) => void; 
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Alex"
+                placeholder={lastName || 'Alex'}
                 className="w-full bg-canvas text-ink-900 font-bold text-sm rounded-xl px-4 py-3 border border-ink-200 focus:border-ink-900 focus:outline-none"
               />
             </div>
@@ -171,21 +174,37 @@ function SquadLobby({ onOpenRoom, onBack }: { onOpenRoom: (id: string) => void; 
 function SquadRoom({
   roomId,
   onOpenRoom,
-  onOpenInMachine,
+  onViewReceipt,
   onBack,
 }: {
   roomId: string;
   onOpenRoom: (id: string) => void;
-  onOpenInMachine: (question: string, options: string[], verdict: string) => void;
+  onViewReceipt: (question: string, options: string[], verdict: string) => void;
   onBack: () => void;
 }) {
   const room = useRoom(roomId);
   const { addOption, spinRoom } = useSquadActions();
-  const [name, setName] = useState(savedName);
+  const [name, setName] = useState('');
   const [option, setOption] = useState('');
   const [copied, setCopied] = useState(false);
+  const [spinRequest, setSpinRequest] = useState<{ winnerIndex: number; nonce: number } | null>(null);
+  const prevStatus = useRef<string | undefined>(undefined);
+  const lastName = savedName();
 
   void onOpenRoom;
+
+  // Animate the wheel for everyone watching when the verdict locks
+  useEffect(() => {
+    if (!room || room.status !== 'locked' || !room.verdict) {
+      prevStatus.current = room?.status;
+      return;
+    }
+    if (prevStatus.current === 'open') {
+      const idx = room.options.indexOf(room.verdict);
+      if (idx >= 0) setSpinRequest({ winnerIndex: idx, nonce: Date.now() });
+    }
+    prevStatus.current = room.status;
+  }, [room]);
 
   if (room === undefined) {
     return (
@@ -215,12 +234,13 @@ function SquadRoom({
   const submitOption = async () => {
     if (!option.trim() || room.options.length >= 12) return;
     sound.tap();
+    const who = name.trim() || lastName || 'Friend';
     try {
-      localStorage.setItem(NAME_KEY, name.trim() || 'Friend');
+      localStorage.setItem(NAME_KEY, who);
     } catch {
       // noop
     }
-    await addOption({ roomId, name: name.trim() || 'Friend', option: option.trim() });
+    await addOption({ roomId, name: who, option: option.trim() });
     setOption('');
   };
 
@@ -268,6 +288,9 @@ function SquadRoom({
             <ShareIcon className="w-4 h-4" />
             <span>{copied ? 'Invite link copied!' : 'Copy invite link'}</span>
           </button>
+          <p className="mt-2.5 font-mono text-[11px] text-white/40 break-all">
+            {link}
+          </p>
         </div>
       </div>
 
@@ -315,7 +338,7 @@ function SquadRoom({
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
+                placeholder={lastName || 'Your name'}
                 className="bg-canvas text-sm font-bold rounded-xl px-3.5 py-2.5 border border-ink-200 focus:border-ink-900 focus:outline-none"
               />
               <input
@@ -339,6 +362,19 @@ function SquadRoom({
           )}
         </div>
 
+        {/* Live wheel, spins for everyone on lock */}
+        {room.options.length >= 2 && (
+          <div className="bg-white rounded-2xl p-4 flex flex-col items-center">
+            <SpinWheel
+              options={room.options}
+              verdict={locked ? room.verdict ?? null : null}
+              request={spinRequest}
+              onTick={() => sound.tick()}
+              onSettled={() => {}}
+            />
+          </div>
+        )}
+
         {/* Verdict / spin */}
         {locked && room.verdict ? (
           <div className="bg-ink-900 text-white rounded-2xl p-6 text-center">
@@ -351,12 +387,12 @@ function SquadRoom({
             <button
               onClick={() => {
                 sound.click();
-                onOpenInMachine(room.question, room.options, room.verdict as string);
+                onViewReceipt(room.question, room.options, room.verdict as string);
               }}
               className="mt-4 h-11 px-6 rounded-full bg-white text-ink-900 text-[13px] font-bold inline-flex items-center gap-2"
             >
-              <span>Open in the machine</span>
-              <ArrowRightIcon className="w-4 h-4" />
+              <TicketIcon className="w-4 h-4" />
+              <span>View sealed receipt</span>
             </button>
           </div>
         ) : (
