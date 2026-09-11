@@ -21,4 +21,9 @@ export default defineSchema({
     email: v.string(),
     createdAt: v.number(),
   }),
+  visits: defineTable({
+    day: v.string(),
+    route: v.string(),
+    count: v.number(),
+  }).index("by_day", ["day"]),
 });
