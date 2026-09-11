@@ -1,10 +1,13 @@
 import { query } from "./_generated/server";
+import { v } from "convex/values";
+import { validToken } from "./admins";
 
 // Content-blind aggregates for the admin dashboard.
 // Counts and dates only. Never returns questions, options, or names.
 export const overview = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { token: v.string() },
+  handler: async (ctx, args) => {
+    if (!(await validToken(ctx, args.token))) return null;
     const rooms = await ctx.db.query("rooms").collect();
 
     let open = 0;
