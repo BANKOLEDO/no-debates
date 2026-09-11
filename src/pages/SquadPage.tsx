@@ -3,6 +3,7 @@ import { ArrowLeftIcon, ArrowPathIcon, PlusIcon, ShareIcon, TicketIcon } from '@
 import { SpinWheel } from '../components/SpinWheel';
 import { convexClient } from '../lib/convexClient';
 import { useRoom, useSquadActions } from '../lib/squadApi';
+import { useToast } from '../components/Toaster';
 import { sound } from '../audio/sound';
 import { getDiceBearAvatar } from '../utils/dicebear';
 
@@ -65,6 +66,7 @@ const SquadPage: React.FC<SquadScreenProps> = ({ roomId, onOpenRoom, onViewRecei
 // Create a room
 function SquadLobby({ onOpenRoom, onBack }: { onOpenRoom: (id: string) => void; onBack: () => void }) {
   const { createRoom } = useSquadActions();
+  const { toast } = useToast();
   const [question, setQuestion] = useState('');
   const [name, setName] = useState('');
   const [option, setOption] = useState('');
@@ -88,6 +90,11 @@ function SquadLobby({ onOpenRoom, onBack }: { onOpenRoom: (id: string) => void; 
         option: option.trim(),
       });
       onOpenRoom(id);
+    } catch {
+      toast.error({
+        title: 'Could not create the room',
+        message: 'Check your connection and try again.',
+      });
     } finally {
       setBusy(false);
     }
@@ -184,9 +191,9 @@ function SquadRoom({
 }) {
   const room = useRoom(roomId);
   const { addOption, spinRoom } = useSquadActions();
+  const { toast } = useToast();
   const [name, setName] = useState('');
   const [option, setOption] = useState('');
-  const [copied, setCopied] = useState(false);
   const [spinRequest, setSpinRequest] = useState<{ winnerIndex: number; nonce: number } | null>(null);
   const prevStatus = useRef<string | undefined>(undefined);
   const lastName = savedName();
@@ -240,25 +247,41 @@ function SquadRoom({
     } catch {
       // noop
     }
-    await addOption({ roomId, name: who, option: option.trim() });
-    setOption('');
+    try {
+      await addOption({ roomId, name: who, option: option.trim() });
+      setOption('');
+    } catch {
+      toast.error({
+        title: 'Could not add your option',
+        message: 'Check your connection and try again.',
+      });
+    }
   };
 
   const copyLink = async () => {
     sound.tap();
     try {
       await navigator.clipboard.writeText(link);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      toast.success({ title: 'Invite link copied' });
     } catch {
-      // noop
+      toast.error({
+        title: 'Could not copy automatically',
+        message: 'Copy the link below instead.',
+      });
     }
   };
 
   const spin = async () => {
     sound.coin();
-    await spinRoom(roomId);
-    sound.win();
+    try {
+      await spinRoom(roomId);
+      sound.win();
+    } catch {
+      toast.error({
+        title: 'Could not lock the verdict',
+        message: 'Someone else may have spun. Check your connection.',
+      });
+    }
   };
 
   return (
@@ -286,7 +309,7 @@ function SquadRoom({
             className="mt-5 h-11 px-5 rounded-full bg-white/10 text-white text-[13px] font-bold flex items-center gap-2 hover:bg-white/15"
           >
             <ShareIcon className="w-4 h-4" />
-            <span>{copied ? 'Invite link copied!' : 'Copy invite link'}</span>
+            <span>Copy invite link</span>
           </button>
           <p className="mt-2.5 font-mono text-[11px] text-white/40 break-all">
             {link}
