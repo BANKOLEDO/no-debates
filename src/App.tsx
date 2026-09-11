@@ -17,7 +17,7 @@ import { PrivacyPage } from './pages/PrivacyPage';
 import { Logo } from './components/Logo';
 import { MotionConfig } from 'motion/react';
 import { sound } from './audio/sound';
-import { decodeDecisionFromHash } from './utils/shareUrl';
+import { decodeDecisionFromHash, encodeDecisionToHash } from './utils/shareUrl';
 import { PRESETS } from './utils/presets';
 import { DecisionRecord, DecisionPreset } from './types';
 
@@ -70,6 +70,7 @@ export function App() {
   const [sharedData, setSharedData] = useState<SharedVerdict | null>(() => initialLocation().shared);
   const [activeTab, setActiveTab] = useState<BottomTab>('machine');
   const [activeSection, setActiveSection] = useState('');
+  const [squadId, setSquadId] = useState<string | null>(() => parseSquadId());
 
   useEffect(() => {
     try {
@@ -116,6 +117,7 @@ export function App() {
     const onHash = () => {
       const h = window.location.hash;
       if (h.startsWith('#/') || h === '') setRoute(parseRoute());
+      setSquadId(parseSquadId());
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -232,6 +234,18 @@ export function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Any verdict opens as a receipt with its proof URL in place
+  const openReceiptData = (question: string, options: string[], verdict: string, timestamp: number) => {
+    const hash = encodeDecisionToHash({ question, options, verdict, timestamp });
+    try {
+      window.location.hash = hash;
+    } catch {
+      // noop
+    }
+    setSharedData({ question, options, verdict, timestamp, hash });
+    setRoute('receipt');
+  };
+
   // History entries open as receipts, with the proof URL in place
   const openReceiptFor = (rec: DecisionRecord) => {
     if (!rec.shareCode) {
@@ -334,14 +348,14 @@ export function App() {
       {route === 'squad' && (
         <main className="flex-1 w-full">
           <SquadScreen
-            key={parseSquadId() || 'lobby'}
-            roomId={route === 'squad' ? parseSquadId() : null}
+            key={squadId || 'lobby'}
+            roomId={squadId}
             onOpenRoom={(id) => {
+              setSquadId(id);
               window.location.hash = `#/squad/${id}`;
             }}
-            onOpenInMachine={(question, options, verdict) => {
-              setInitialData({ question, options, verdict });
-              go('machine');
+            onViewReceipt={(question, options, verdict) => {
+              openReceiptData(question, options, verdict, Date.now());
             }}
             onBack={() => go('home')}
           />
