@@ -17,15 +17,9 @@ export function useDecisionMachine({
   initialData,
   presets = PRESETS,
 }: UseDecisionMachineOptions) {
-  const [selectedPresetId, setSelectedPresetId] = useState<string>('dinner');
-  const [question, setQuestion] = useState<string>("Where are we eating tonight?");
-  const [options, setOptions] = useState<string[]>([
-    'Ramen Bowl',
-    'Street Tacos',
-    'Smash Burgers',
-    'Woodfire Pizza',
-    'Thai Curry'
-  ]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
+  const [question, setQuestion] = useState<string>('');
+  const [options, setOptions] = useState<string[]>([]);
   const [newOptionInput, setNewOptionInput] = useState<string>('');
   const [verdict, setVerdict] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
@@ -71,6 +65,21 @@ export function useDecisionMachine({
     sound.tap();
     setOptions([...options].sort(() => Math.random() - 0.5));
     setVerdict(null);
+  };
+
+  // Back to a blank machine
+  const resetMachine = () => {
+    if (isSpinning) return;
+    sound.tap();
+    setSelectedPresetId('');
+    setQuestion('');
+    setOptions([]);
+    setNewOptionInput('');
+    setVerdict(null);
+    setSpinRequest(null);
+    setClip(null);
+    setCopied(false);
+    setCopiedLink(false);
   };
 
   const spinDecision = () => {
@@ -211,6 +220,7 @@ export function useDecisionMachine({
     addOption,
     removeOption,
     shuffleOptions,
+    resetMachine,
     spinDecision,
     handleSpinTick,
     handleSpinSettled,
