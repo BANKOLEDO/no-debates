@@ -13,6 +13,7 @@ End group chat indecision in 3 seconds flat. Type your options, spin the prize w
 - **Speed round** — rapid-fire head-to-head duels with a running tally and a sprint champion, built for streams and big screens
 - **Embeddable live board** — chromeless `/e/<roomId>` screen for OBS, presentations, and iframes that animates in sync
 - **Fair flip API** — `POST /api/flip` returns a fair verdict with a verifiable receipt URL for bots and integrations
+- **Landing showcases** — the marketing page walks through every way to settle a debate: solo machine, squad spins, speed round, live screen, and the flip API
 - **Spin clips** — every spin is recorded and exportable as video
 - **History + stats** — local decision log with settled counts, weekly pace, and day streaks
 - **Mobile bottom tab bar + desktop navbar** — full-width bottom bar with animated concave cutout on mobile; sticky navbar with direct access to Machine, Speed round, Squad, and History on desktop
