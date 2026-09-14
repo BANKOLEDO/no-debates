@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { FullWidthHero } from './components/FullWidthHero';
+import { MultiplayerShowcase } from './components/MultiplayerShowcase';
 import { ChatShowcase } from './components/ChatShowcase';
 import { BentoShowcase } from './components/BentoShowcase';
 import { PresetExplorer } from './components/PresetExplorer';
@@ -353,6 +354,15 @@ export function App() {
 
           <SectionDivider label="Features & Architecture" />
           <BentoShowcase />
+
+          <SectionDivider label="More Ways To Settle It" />
+          <MultiplayerShowcase
+            onGoSquad={() => {
+              setActiveTab('squad');
+              go('squad');
+            }}
+            onGoSpeed={() => go('speed')}
+          />
 
           <SectionDivider label="Everyday Templates" />
           <PresetExplorer
