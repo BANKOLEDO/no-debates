@@ -12,11 +12,11 @@ export const FaqSection: React.FC = () => {
     },
     {
       q: 'How are decisions calculated?',
-      a: 'Every option in your pool has an equal chance of winning. The pick happens on your device, instantly.'
+      a: 'Every option has an equal chance of winning. Solo spins pick on your device; squad rooms and the fair flip API pick on our servers. All of it is random — nothing favors an option.'
     },
     {
       q: 'Where are my past decisions saved?',
-      a: 'Everything is saved privately in your browser local storage. We do not maintain a server database of your questions or outcomes.'
+      a: 'Solo history lives privately in your browser\'s local storage. Squad rooms sync through our hosted database while they are active, so anyone with the room link can read that room.'
     },
     {
       q: 'Can I add my own custom choices?',
