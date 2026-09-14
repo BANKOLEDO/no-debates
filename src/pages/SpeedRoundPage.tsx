@@ -16,6 +16,7 @@ interface SpeedRoundPageProps {
   onSaveRecord: (record: DecisionRecord) => void;
   onOpenReceipt: (question: string, options: string[], verdict: string, timestamp: number) => void;
   onBack: () => void;
+  embedded?: boolean;
 }
 
 type Phase = 'setup' | 'round' | 'ended';
@@ -33,6 +34,7 @@ export const SpeedRoundPage: React.FC<SpeedRoundPageProps> = ({
   onSaveRecord,
   onOpenReceipt,
   onBack,
+  embedded = false,
 }) => {
   const [phase, setPhase] = useState<Phase>('setup');
   const [question, setQuestion] = useState('');
@@ -129,24 +131,26 @@ export const SpeedRoundPage: React.FC<SpeedRoundPageProps> = ({
   return (
     <div className="min-h-screen bg-canvas">
       <div className="bg-ink-900 text-white">
-        <div className="max-w-2xl mx-auto px-4 pt-5 pb-8">
-          <div className="flex items-center justify-between mb-6">
-            <button
-              onClick={() => {
-                sound.tap();
-                onBack();
-              }}
-              className="flex items-center gap-1.5 text-[13px] font-bold text-white/60 hover:text-white transition-colors"
-            >
-              <ArrowLeftIcon className="w-4 h-4" />
-              <span>Home</span>
-            </button>
-            <span className="flex items-center gap-1.5 text-[13px] font-extrabold tracking-tight">
-              <BoltIcon className="w-4 h-4 text-accent" />
-              Speed Round
-            </span>
-            <span className="w-14" />
-          </div>
+        <div className={`max-w-2xl mx-auto px-4 ${embedded ? 'pt-4' : 'pt-5'} pb-8`}>
+          {!embedded && (
+            <div className="flex items-center justify-between mb-6">
+              <button
+                onClick={() => {
+                  sound.tap();
+                  onBack();
+                }}
+                className="flex items-center gap-1.5 text-[13px] font-bold text-white/60 hover:text-white transition-colors"
+              >
+                <ArrowLeftIcon className="w-4 h-4" />
+                <span>Home</span>
+              </button>
+              <span className="flex items-center gap-1.5 text-[13px] font-extrabold tracking-tight">
+                <BoltIcon className="w-4 h-4 text-accent" />
+                Speed Round
+              </span>
+              <span className="w-14" />
+            </div>
+          )}
 
           {phase === 'round' && (
             <div className="flex items-center justify-between gap-3">
