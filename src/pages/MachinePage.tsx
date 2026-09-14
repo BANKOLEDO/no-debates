@@ -1,7 +1,8 @@
-import React from 'react';
-import { ArrowLeftIcon, ClockIcon, BoltIcon } from '@heroicons/react/24/outline';
+import React, { useState } from 'react';
+import { ArrowLeftIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useDecisionMachine } from '../hooks/useDecisionMachine';
 import { DecisionMachine } from '../components/DecisionMachine';
+import { SpeedRoundPage } from '../pages/SpeedRoundPage';
 import { DecisionRecord, DecisionPreset } from '../types';
 import { PRESETS } from '../utils/presets';
 import { sound } from '../audio/sound';
@@ -13,10 +14,10 @@ interface MachinePageProps {
   historyCount: number;
   onBack: () => void;
   onOpenHistory: () => void;
-  onOpenSpeed: () => void;
+  onOpenReceipt: (question: string, options: string[], verdict: string, timestamp: number) => void;
 }
 
-// Product screen: slim bar, machine first, nothing else
+// Product screen: slim bar, machine first, speed round one tap away
 export const MachinePage: React.FC<MachinePageProps> = ({
   onSaveRecord,
   initialData,
@@ -24,14 +25,15 @@ export const MachinePage: React.FC<MachinePageProps> = ({
   historyCount,
   onBack,
   onOpenHistory,
-  onOpenSpeed,
+  onOpenReceipt,
 }) => {
   const machine = useDecisionMachine({ onSaveRecord, initialData, presets });
+  const [view, setView] = useState<'machine' | 'speed'>('machine');
 
   return (
     <div className="min-h-screen bg-canvas">
       <div className="bg-ink-900 text-white">
-        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <button
             onClick={() => {
               sound.tap();
@@ -40,44 +42,62 @@ export const MachinePage: React.FC<MachinePageProps> = ({
             className="flex items-center gap-1.5 text-[13px] font-bold text-white/60 hover:text-white transition-colors"
           >
             <ArrowLeftIcon className="w-4 h-4" />
-            <span>Home</span>
+            <span className="hidden sm:inline">Home</span>
           </button>
-          <span className="text-[13px] font-extrabold tracking-tight">
-            Decision Machine
-          </span>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center rounded-full bg-white/10 p-1">
             <button
               onClick={() => {
                 sound.tap();
-                onOpenSpeed();
+                setView('machine');
               }}
-              className="flex items-center gap-1.5 text-[13px] font-bold text-white/60 hover:text-white transition-colors"
+              className={`text-[12px] font-extrabold rounded-full px-4 py-1.5 transition-colors ${
+                view === 'machine' ? 'bg-accent text-ink-900' : 'text-white/60 hover:text-white'
+              }`}
             >
-              <BoltIcon className="w-4 h-4" />
-              <span className="hidden md:inline">Speed</span>
+              Spin
             </button>
             <button
               onClick={() => {
                 sound.tap();
-                onOpenHistory();
+                setView('speed');
               }}
-              className="hidden sm:flex items-center gap-1.5 text-[13px] font-bold text-white/60 hover:text-white transition-colors"
+              className={`text-[12px] font-extrabold rounded-full px-4 py-1.5 transition-colors ${
+                view === 'speed' ? 'bg-accent text-ink-900' : 'text-white/60 hover:text-white'
+              }`}
             >
-              <ClockIcon className="w-4 h-4" />
-              <span>History</span>
-              {historyCount > 0 && (
-                <span className="bg-white text-ink-900 text-[11px] font-extrabold min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center">
-                  {historyCount}
-                </span>
-              )}
+              Speed
             </button>
           </div>
+          <button
+            onClick={() => {
+              sound.tap();
+              onOpenHistory();
+            }}
+            className="hidden sm:flex items-center gap-1.5 text-[13px] font-bold text-white/60 hover:text-white transition-colors"
+          >
+            <ClockIcon className="w-4 h-4" />
+            <span>History</span>
+            {historyCount > 0 && (
+              <span className="bg-white text-ink-900 text-[11px] font-extrabold min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center">
+                {historyCount}
+              </span>
+            )}
+          </button>
         </div>
       </div>
 
-      <div className="px-4 py-4 pb-4">
-        <DecisionMachine api={machine} />
-      </div>
+      {view === 'machine' ? (
+        <div className="px-4 pb-4">
+          <DecisionMachine api={machine} />
+        </div>
+      ) : (
+        <SpeedRoundPage
+          embedded
+          onSaveRecord={onSaveRecord}
+          onOpenReceipt={onOpenReceipt}
+          onBack={onBack}
+        />
+      )}
     </div>
   );
 };
