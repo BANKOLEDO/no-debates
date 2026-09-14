@@ -149,6 +149,7 @@ export function App() {
     if (route === 'history') setActiveTab('history');
     if (route === 'home') setActiveTab('home');
     if (route === 'machine') setActiveTab('machine');
+    if (route === 'speed') setActiveTab('machine');
     if (route === 'squad') setActiveTab('squad');
     if (convexClient) {
       (convexClient.mutation as any)('visits:trackPageView', { route }).catch(() => {
@@ -389,7 +390,7 @@ export function App() {
             historyCount={history.length}
             onBack={() => go('home')}
             onOpenHistory={() => go('history')}
-            onOpenSpeed={() => go('speed')}
+            onOpenReceipt={openReceiptData}
           />
         </main>
       )}
