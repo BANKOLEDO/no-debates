@@ -1,4 +1,4 @@
-# No Debates
+# No Debates https://no-debates.vercel.app/
 
 End group chat indecision in 3 seconds flat. Type your options, spin the prize wheel, and share the locked verdict. No accounts, no voting, no 40-message arguments.
 
